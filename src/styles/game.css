@@ -1,0 +1,226 @@
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #1a1a1a;
+    font-family: Arial, sans-serif;
+    color: #ffffff;
+}
+
+.screen {
+    display: none;
+    text-align: center;
+}
+
+.screen.active {
+    display: block;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+}
+
+button {
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+}
+
+.modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    padding: 30px;
+    border: 3px solid #4CAF50;
+    border-radius: 15px;
+    max-width: 700px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow:
+        0 0 20px rgba(76, 175, 80, 0.5),
+        0 0 40px rgba(76, 175, 80, 0.3),
+        inset 0 0 20px rgba(76, 175, 80, 0.1);
+    animation: modalGlow 2s ease-in-out infinite;
+}
+
+@keyframes modalGlow {
+    0%, 100% {
+        box-shadow:
+            0 0 20px rgba(76, 175, 80, 0.5),
+            0 0 40px rgba(76, 175, 80, 0.3),
+            inset 0 0 20px rgba(76, 175, 80, 0.1);
+    }
+    50% {
+        box-shadow:
+            0 0 30px rgba(76, 175, 80, 0.7),
+            0 0 60px rgba(76, 175, 80, 0.5),
+            inset 0 0 30px rgba(76, 175, 80, 0.2);
+    }
+}
+
+.modal-content h2 {
+    color: #4CAF50;
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+    margin-top: 0;
+    font-size: 2rem;
+    text-align: center;
+}
+
+.modal-content h3 {
+    color: #4CAF50;
+    text-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+    margin-top: 20px;
+    font-size: 1.5rem;
+}
+
+.powerup-item {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px 15px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border-left: 4px solid;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.powerup-item:hover {
+    transform: translateX(5px);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.powerup-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+}
+
+.powerup-name {
+    font-weight: bold;
+    font-size: 1rem;
+    flex: 1;
+}
+
+.powerup-duration {
+    color: #aaa;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.rule-item {
+    margin: 10px 0;
+    padding-left: 20px;
+    color: #ddd;
+}
+
+.close-btn {
+    background-color: #ff4444;
+    padding: 10px 30px;
+    margin-top: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.close-btn:hover {
+    background-color: #cc0000;
+}
+
+.secondary-btn {
+    background-color: #2196F3;
+    margin-top: 15px;
+}
+
+.secondary-btn:hover {
+    background-color: #0b7dda;
+}
+
+.game-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.leaderboard-widget {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    border: 2px solid #4CAF50;
+    border-radius: 10px;
+    padding: 15px;
+    min-width: 250px;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+}
+
+.leaderboard-title {
+    color: #4CAF50;
+    text-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+    font-size: 1.2rem;
+    margin: 0 0 15px 0;
+    text-align: center;
+}
+
+.leaderboard-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.leaderboard-rank {
+    font-size: 1.2rem;
+    margin-right: 8px;
+}
+
+.leaderboard-player {
+    flex: 1;
+    color: #4CAF50;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.leaderboard-score {
+    color: #FFD700;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.leaderboard-empty {
+    color: #aaa;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 10px;
+}

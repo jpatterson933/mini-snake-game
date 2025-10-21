@@ -1,0 +1,24 @@
+{
+  "name": "snake-game",
+  "version": "1.0.0",
+  "description": "Snake game with SignalR and webpack",
+  "main": "src/js/main.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "clean": "rm -rf wwwroot/dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "mini-css-extract-plugin": "^2.9.2",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.7"
+  }
+}
