@@ -48,7 +48,7 @@ public class SnakeGameHub : Hub
 
     private void StartGameLoop(string connectionId)
     {
-        var timer = new Timer(async _ => await GameLoopTick(connectionId), null, 150, 150);
+        var timer = new Timer(async _ => await GameLoopTick(connectionId), null, 100, 100);
         GameTimers[connectionId] = timer;
     }
 
@@ -57,7 +57,8 @@ public class SnakeGameHub : Hub
         if (!ActiveGames.TryGetValue(connectionId, out var game))
             return;
 
-        game.UpdateGameState();
+        var adjustedDeltaTime = 0.1 / game.GameSpeed;
+        game.UpdateGameState(adjustedDeltaTime);
         await SendCurrentGameStateToClient(connectionId, game);
 
         if (game.IsGameOver)
@@ -78,7 +79,39 @@ public class SnakeGameHub : Hub
                 color = game.CurrentFood.Color,
                 name = game.CurrentFood.Name
             },
+            powerUp = game.CurrentPowerUp != null ? new
+            {
+                position = game.CurrentPowerUp.Location,
+                type = game.CurrentPowerUp.Type.ToString(),
+                name = game.CurrentPowerUp.Name,
+                color = game.CurrentPowerUp.Color,
+                icon = game.CurrentPowerUp.Icon,
+                rotation = game.CurrentPowerUp.RotationAngle,
+                pulse = game.CurrentPowerUp.PulseIntensity
+            } : null,
+            particles = game.Particles.ActiveParticles.Select(p => new
+            {
+                x = p.X,
+                y = p.Y,
+                color = p.Color,
+                size = p.Size,
+                opacity = p.Opacity
+            }).ToList(),
+            activePowerUps = game.ActivePowerUps.Select(p => new
+            {
+                type = p.Type.ToString(),
+                progress = p.GetProgressPercentage(),
+                remaining = p.RemainingTimeInSeconds
+            }).ToList(),
+            visualEffects = game.ActiveVisualEffects.Select(e => new
+            {
+                type = e.EffectType,
+                intensity = e.Intensity,
+                duration = e.DurationRemaining
+            }).ToList(),
             score = game.Score,
+            scoreMultiplier = game.ScoreMultiplier,
+            gameSpeed = game.GameSpeed,
             isGameOver = game.IsGameOver
         });
     }

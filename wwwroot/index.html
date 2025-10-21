@@ -55,7 +55,11 @@
 
     <div id="gameScreen" class="screen">
         <div style="margin-bottom: 20px;">
-            <div style="font-size: 1.5rem; margin-bottom: 10px;">Score: <span id="score">0</span></div>
+            <div style="font-size: 1.5rem; margin-bottom: 10px; display: flex; justify-content: space-between; width: 600px;">
+                <span>Score: <span id="score">0</span> <span id="multiplier" style="color: #FFD700;"></span></span>
+                <span id="speedIndicator" style="color: #00FFFF;"></span>
+            </div>
+            <div id="activePowerUps" style="margin-bottom: 10px; min-height: 30px;"></div>
             <canvas id="gameCanvas" width="600" height="600" style="border: 3px solid #4CAF50; background-color: #2a2a2a;"></canvas>
         </div>
         <div id="gameOverMessage" style="display: none; font-size: 2rem; color: #ff6b6b; margin-bottom: 10px;">Game Over!</div>
@@ -71,10 +75,15 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score');
+        const multiplierDisplay = document.getElementById('multiplier');
+        const speedIndicator = document.getElementById('speedIndicator');
+        const activePowerUpsDisplay = document.getElementById('activePowerUps');
         const gameOverMessage = document.getElementById('gameOverMessage');
 
         const cellSize = 20;
         let connection;
+        let screenShakeOffsetX = 0;
+        let screenShakeOffsetY = 0;
 
         startButton.addEventListener('click', showGameScreenAndStartGame);
         exitButton.addEventListener('click', showMainMenu);
@@ -132,10 +141,25 @@
         }
 
         function renderGameStateOnCanvas(gameState) {
+            applyVisualEffects(gameState.visualEffects);
+            
+            ctx.save();
+            ctx.translate(screenShakeOffsetX, screenShakeOffsetY);
+            
             clearCanvas();
-            drawSnakeTrail(gameState.trail, gameState.colors);
+            drawParticles(gameState.particles);
+            drawSnakeTrail(gameState.trail, gameState.colors, gameState.activePowerUps);
             drawFood(gameState.food);
-            updateScoreDisplay(gameState.score);
+            
+            if (gameState.powerUp) {
+                drawPowerUp(gameState.powerUp);
+            }
+            
+            ctx.restore();
+            
+            updateScoreDisplay(gameState.score, gameState.scoreMultiplier);
+            updateSpeedIndicator(gameState.gameSpeed);
+            updateActivePowerUpsDisplay(gameState.activePowerUps);
             
             if (gameState.isGameOver) {
                 showGameOverMessage();
@@ -147,9 +171,24 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        function drawSnakeTrail(segments, colors) {
+        function drawSnakeTrail(segments, colors, activePowerUps) {
+            const hasInvincibility = activePowerUps?.some(p => p.type === 'Invincibility');
+            const hasGhostMode = activePowerUps?.some(p => p.type === 'GhostMode');
+            
             segments.forEach((segment, index) => {
                 const color = colors[Math.min(index, colors.length - 1)];
+                
+                if (hasGhostMode) {
+                    ctx.globalAlpha = 0.5;
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = '#9370DB';
+                }
+                
+                if (hasInvincibility && index === 0) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00BFFF';
+                }
+                
                 ctx.fillStyle = color;
                 ctx.fillRect(
                     segment.x * cellSize,
@@ -157,10 +196,16 @@
                     cellSize - 2,
                     cellSize - 2
                 );
+                
+                ctx.globalAlpha = 1.0;
+                ctx.shadowBlur = 0;
             });
         }
 
         function drawFood(food) {
+            ctx.save();
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = food.color;
             ctx.fillStyle = food.color;
             ctx.beginPath();
             ctx.arc(
@@ -171,10 +216,106 @@
                 Math.PI * 2
             );
             ctx.fill();
+            ctx.restore();
         }
 
-        function updateScoreDisplay(score) {
+        function drawPowerUp(powerUp) {
+            const centerX = powerUp.position.x * cellSize + cellSize / 2;
+            const centerY = powerUp.position.y * cellSize + cellSize / 2;
+            
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            
+            ctx.shadowBlur = 20 * powerUp.pulse;
+            ctx.shadowColor = powerUp.color;
+            
+            ctx.fillStyle = powerUp.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, (cellSize / 2) * powerUp.pulse, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.font = `${cellSize}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(powerUp.icon, 0, 0);
+            
+            ctx.restore();
+        }
+
+        function drawParticles(particles) {
+            if (!particles) return;
+            
+            particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.opacity;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(
+                    particle.x * cellSize,
+                    particle.y * cellSize,
+                    particle.size * cellSize,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function updateScoreDisplay(score, scoreMultiplier) {
             scoreDisplay.textContent = score;
+            multiplierDisplay.textContent = scoreMultiplier > 1 ? `x${scoreMultiplier}` : '';
+        }
+
+        function updateSpeedIndicator(gameSpeed) {
+            if (gameSpeed > 1) {
+                speedIndicator.textContent = '⚡ SPEED BOOST';
+            } else if (gameSpeed < 1) {
+                speedIndicator.textContent = '⏰ SLOW MOTION';
+            } else {
+                speedIndicator.textContent = '';
+            }
+        }
+
+        function updateActivePowerUpsDisplay(activePowerUps) {
+            if (!activePowerUps || activePowerUps.length === 0) {
+                activePowerUpsDisplay.innerHTML = '';
+                return;
+            }
+            
+            activePowerUpsDisplay.innerHTML = activePowerUps.map(powerUp => {
+                const progressPercent = (powerUp.progress * 100).toFixed(0);
+                const typeColors = {
+                    'SpeedBoost': '#FFD700',
+                    'ScoreMultiplier': '#FF1493',
+                    'Invincibility': '#00BFFF',
+                    'SlowMotion': '#00FFFF',
+                    'GhostMode': '#9370DB'
+                };
+                const color = typeColors[powerUp.type] || '#fff';
+                return `
+                    <div style="display: inline-block; margin-right: 15px; padding: 5px 10px; background: rgba(0,0,0,0.5); border-radius: 5px; border: 2px solid ${color};">
+                        <span style="color: ${color};">${powerUp.type}</span>
+                        <div style="width: 100px; height: 4px; background: #333; margin-top: 3px; border-radius: 2px;">
+                            <div style="width: ${progressPercent}%; height: 100%; background: ${color}; border-radius: 2px;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function applyVisualEffects(visualEffects) {
+            if (!visualEffects) return;
+            
+            screenShakeOffsetX = 0;
+            screenShakeOffsetY = 0;
+            
+            visualEffects.forEach(effect => {
+                if (effect.type === 'ScreenShake') {
+                    screenShakeOffsetX = (Math.random() - 0.5) * effect.intensity;
+                    screenShakeOffsetY = (Math.random() - 0.5) * effect.intensity;
+                }
+            });
         }
 
         function showGameOverMessage() {
