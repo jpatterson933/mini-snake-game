@@ -368,7 +368,6 @@
             gameScreen.classList.add('active');
             gameOverMessage.style.display = 'none';
             connectToGameServerAndStart();
-            loadAndDisplayLeaderboard();
         }
 
         function showMainMenu() {
@@ -387,24 +386,11 @@
 
         async function loadAndDisplayLeaderboard() {
             try {
-                await ensureConnectionIsEstablished();
                 const topFiveScores = await connection.invoke("GetTopFiveScores");
                 renderLeaderboardEntries(topFiveScores);
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
                 showLeaderboardError();
-            }
-        }
-
-        async function ensureConnectionIsEstablished() {
-            if (!connection) {
-                connection = new signalR.HubConnectionBuilder()
-                    .withUrl("/gameHub")
-                    .build();
-            }
-            
-            if (connection.state === signalR.HubConnectionState.Disconnected) {
-                await connection.start();
             }
         }
 
@@ -512,7 +498,10 @@
             connection.on("UpdateGameState", renderGameStateOnCanvas);
 
             connection.start()
-                .then(() => connection.invoke("StartNewGame"))
+                .then(() => {
+                    connection.invoke("StartNewGame");
+                    loadAndDisplayLeaderboard();
+                })
                 .catch(err => console.error(err));
 
             listenForPlayerKeyboardInput();
