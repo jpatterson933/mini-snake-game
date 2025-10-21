@@ -94,3 +94,5 @@ artifacts/
 .cursorindexingignore
 
 node_modules/
+
+.md
