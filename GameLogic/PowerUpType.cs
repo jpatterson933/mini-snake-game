@@ -6,6 +6,7 @@ public enum PowerUpType
     ScoreMultiplier,
     Invincibility,
     SlowMotion,
-    GhostMode
+    GhostMode,
+    LuckyClover
 }
 

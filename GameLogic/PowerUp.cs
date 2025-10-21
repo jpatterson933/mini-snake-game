@@ -18,7 +18,8 @@ public class PowerUp
         { PowerUpType.ScoreMultiplier, ("Score Multiplier", "#FF1493", "💎", 8, 75) },
         { PowerUpType.Invincibility, ("Invincibility", "#00BFFF", "🛡️", 6, 100) },
         { PowerUpType.SlowMotion, ("Slow Motion", "#00FFFF", "⏰", 7, 60) },
-        { PowerUpType.GhostMode, ("Ghost Mode", "#9370DB", "👻", 5, 80) }
+        { PowerUpType.GhostMode, ("Ghost Mode", "#9370DB", "👻", 5, 80) },
+        { PowerUpType.LuckyClover, ("Lucky Clover", "#32CD32", "🍀", 10, 120) }
     };
 
     public PowerUp(Position location, PowerUpType type)

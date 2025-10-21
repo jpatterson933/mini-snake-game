@@ -57,7 +57,7 @@ public class SnakeGameHub : Hub
         if (!ActiveGames.TryGetValue(connectionId, out var game))
             return;
 
-        var adjustedDeltaTime = 0.1 / game.GameSpeed;
+        var adjustedDeltaTime = 0.1 * game.GameSpeed;
         game.UpdateGameState(adjustedDeltaTime);
         await SendCurrentGameStateToClient(connectionId, game);
 

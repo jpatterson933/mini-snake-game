@@ -4,7 +4,8 @@ public class SnakeGame
 {
     private const int GridWidth = 30;
     private const int GridHeight = 30;
-    private const double PowerUpSpawnChance = 0.15;
+    private const double BasePowerUpSpawnChance = 0.15;
+    private const double BoostedPowerUpSpawnChance = 0.50;
     private const int TicksBeforeNextPowerUpCanSpawn = 30;
     private const double PowerUpExtensionPerFoodInSeconds = 1.0;
 
@@ -16,6 +17,7 @@ public class SnakeGame
     public bool IsGameOver { get; private set; }
     public int ScoreMultiplier { get; private set; }
     public double GameSpeed { get; private set; }
+    public double CurrentPowerUpSpawnChance { get; private set; }
 
     private readonly List<ActivePowerUp> activePowerUps = new();
     private readonly List<VisualEffect> activeVisualEffects = new();
@@ -34,6 +36,7 @@ public class SnakeGame
         IsGameOver = false;
         ScoreMultiplier = 1;
         GameSpeed = 1.0;
+        CurrentPowerUpSpawnChance = BasePowerUpSpawnChance;
         CurrentPowerUp = null;
     }
 
@@ -178,7 +181,7 @@ public class SnakeGame
         if (ticksSinceLastPowerUpSpawn < TicksBeforeNextPowerUpCanSpawn)
             return;
 
-        if (Random.Shared.NextDouble() > PowerUpSpawnChance)
+        if (Random.Shared.NextDouble() > CurrentPowerUpSpawnChance)
             return;
 
         CurrentPowerUp = CreatePowerUpAtRandomLocation();
@@ -240,6 +243,9 @@ public class SnakeGame
             case PowerUpType.SlowMotion:
                 GameSpeed = 0.6;
                 break;
+            case PowerUpType.LuckyClover:
+                CurrentPowerUpSpawnChance = BoostedPowerUpSpawnChance;
+                break;
         }
     }
 
@@ -253,6 +259,9 @@ public class SnakeGame
                 break;
             case PowerUpType.ScoreMultiplier:
                 ScoreMultiplier = 1;
+                break;
+            case PowerUpType.LuckyClover:
+                CurrentPowerUpSpawnChance = BasePowerUpSpawnChance;
                 break;
         }
     }
@@ -309,7 +318,14 @@ public class SnakeGame
 
     private void TriggerPowerUpCollectionEffects(PowerUp powerUp)
     {
-        Particles.EmitParticleBurstAt(Trail.Head, powerUp.Color, 30);
+        if (powerUp.Type == PowerUpType.LuckyClover)
+        {
+            Particles.EmitMassiveExplosionAt(Trail.Head, powerUp.Color, 80);
+        }
+        else
+        {
+            Particles.EmitParticleBurstAt(Trail.Head, powerUp.Color, 30);
+        }
     }
 
     private void TriggerGameOverEffects()

@@ -111,15 +111,19 @@
 
         .powerup-item {
             background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            margin: 10px 0;
+            padding: 12px 15px;
+            margin: 8px 0;
             border-radius: 8px;
             border-left: 4px solid;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .powerup-item:hover {
             transform: translateX(5px);
+            background: rgba(0, 0, 0, 0.5);
         }
 
         .powerup-icon {
@@ -129,12 +133,14 @@
 
         .powerup-name {
             font-weight: bold;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            flex: 1;
         }
 
         .powerup-duration {
-            color: #FFD700;
-            font-size: 0.9rem;
+            color: #aaa;
+            font-size: 0.85rem;
+            opacity: 0.8;
         }
 
         .rule-item {
@@ -188,58 +194,48 @@
 
     <div id="instructionsModal" class="modal">
         <div class="modal-content">
-            <h2>🐍 SNAKE GAME INSTRUCTIONS</h2>
+            <h2>🐍 HOW TO PLAY</h2>
             
-            <h3>🎮 How to Play</h3>
-            <div class="rule-item">• Use <strong>Arrow Keys</strong> to control the snake</div>
-            <div class="rule-item">• Eat food to grow longer and earn <strong>10 points</strong></div>
-            <div class="rule-item">• Each food eaten extends active powerups by <strong>+1 second</strong></div>
-            <div class="rule-item">• Avoid hitting yourself (unless you have Invincibility)</div>
-            <div class="rule-item">• Avoid hitting walls (unless you have Invincibility or Ghost Mode)</div>
+            <h3>🎮 Controls</h3>
+            <div class="rule-item">Arrow Keys to move • Eat food for 10 points • Food extends powerups +1s</div>
             
             <h3>⚡ Powerups</h3>
             
             <div class="powerup-item" style="border-color: #FFD700;">
                 <span class="powerup-icon">⚡</span>
                 <span class="powerup-name" style="color: #FFD700;">Speed Boost</span>
-                <span class="powerup-duration"> - 5 seconds - 50 pts</span>
-                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Increases game speed by 50%. Move faster, think faster!</div>
+                <span class="powerup-duration">5s • 50pts</span>
             </div>
             
             <div class="powerup-item" style="border-color: #FF1493;">
                 <span class="powerup-icon">💎</span>
                 <span class="powerup-name" style="color: #FF1493;">Score Multiplier</span>
-                <span class="powerup-duration"> - 8 seconds - 75 pts</span>
-                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Doubles all points earned. Stack with food collection!</div>
+                <span class="powerup-duration">8s • 75pts</span>
             </div>
             
             <div class="powerup-item" style="border-color: #00BFFF;">
                 <span class="powerup-icon">🛡️</span>
                 <span class="powerup-name" style="color: #00BFFF;">Invincibility</span>
-                <span class="powerup-duration"> - 6 seconds - 100 pts</span>
-                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Pass through yourself safely. Hit walls to wrap to the opposite side!</div>
+                <span class="powerup-duration">6s • 100pts</span>
             </div>
             
             <div class="powerup-item" style="border-color: #00FFFF;">
                 <span class="powerup-icon">⏰</span>
                 <span class="powerup-name" style="color: #00FFFF;">Slow Motion</span>
-                <span class="powerup-duration"> - 7 seconds - 60 pts</span>
-                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Reduces game speed by 40%. More time to think and react!</div>
+                <span class="powerup-duration">7s • 60pts</span>
             </div>
             
             <div class="powerup-item" style="border-color: #9370DB;">
                 <span class="powerup-icon">👻</span>
                 <span class="powerup-name" style="color: #9370DB;">Ghost Mode</span>
-                <span class="powerup-duration"> - 5 seconds - 80 pts</span>
-                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Become ethereal! Pass through walls and yourself. Snake turns transparent.</div>
+                <span class="powerup-duration">5s • 80pts</span>
             </div>
             
-            <h3>💡 Pro Tips</h3>
-            <div class="rule-item">• Powerups spawn randomly after eating food (15% chance)</div>
-            <div class="rule-item">• Multiple powerups can be active simultaneously</div>
-            <div class="rule-item">• Keep eating food to extend powerup durations</div>
-            <div class="rule-item">• Particle effects indicate food/powerup collection</div>
-            <div class="rule-item">• Watch the progress bars to track active powerups</div>
+            <div class="powerup-item" style="border-color: #32CD32;">
+                <span class="powerup-icon">🍀</span>
+                <span class="powerup-name" style="color: #32CD32;">Lucky Clover</span>
+                <span class="powerup-duration">10s • 120pts</span>
+            </div>
             
             <button id="closeInstructionsButton" class="close-btn">Close</button>
         </div>
@@ -482,7 +478,8 @@
                     'ScoreMultiplier': '#FF1493',
                     'Invincibility': '#00BFFF',
                     'SlowMotion': '#00FFFF',
-                    'GhostMode': '#9370DB'
+                    'GhostMode': '#9370DB',
+                    'LuckyClover': '#32CD32'
                 };
                 const color = typeColors[powerUp.type] || '#fff';
                 return `
