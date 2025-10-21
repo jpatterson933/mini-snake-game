@@ -31,6 +31,11 @@ public class SnakeTrail
         segments.Insert(0, newHead);
     }
 
+    public void UpdateHeadPosition(Position newPosition)
+    {
+        segments[0] = newPosition;
+    }
+
     public void GrowByAddingFood(string foodColor)
     {
         colors.Add(foodColor);

@@ -18,6 +18,12 @@ public class ActivePowerUp
         RemainingTimeInSeconds -= tickDurationInSeconds;
     }
 
+    public void ExtendTimeByFoodConsumption(double extensionInSeconds)
+    {
+        RemainingTimeInSeconds += extensionInSeconds;
+        RemainingTimeInSeconds = Math.Min(RemainingTimeInSeconds, TotalDurationInSeconds);
+    }
+
     public bool HasExpired() => RemainingTimeInSeconds <= 0;
 
     public double GetProgressPercentage() => RemainingTimeInSeconds / TotalDurationInSeconds;

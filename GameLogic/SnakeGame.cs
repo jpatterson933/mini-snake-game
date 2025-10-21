@@ -6,6 +6,7 @@ public class SnakeGame
     private const int GridHeight = 30;
     private const double PowerUpSpawnChance = 0.15;
     private const int TicksBeforeNextPowerUpCanSpawn = 30;
+    private const double PowerUpExtensionPerFoodInSeconds = 1.0;
 
     public SnakeTrail Trail { get; private set; }
     public Food CurrentFood { get; private set; }
@@ -52,11 +53,18 @@ public class SnakeGame
         
         Trail.MoveInCurrentDirection();
 
-        if (SnakeHasMovedOutOfBounds() && !IsGhostModeActive())
+        if (SnakeHasMovedOutOfBounds())
         {
-            TriggerGameOverEffects();
-            EndGame();
-            return;
+            if (IsInvincible() || IsGhostModeActive())
+            {
+                WrapSnakeHeadAroundGrid();
+            }
+            else
+            {
+                TriggerGameOverEffects();
+                EndGame();
+                return;
+            }
         }
 
         if (Trail.HasCollidedWithItself() && !IsInvincible())
@@ -71,6 +79,7 @@ public class SnakeGame
             TriggerFoodCollectionEffects();
             AddFoodToSnake();
             IncreaseScoreByFoodValue();
+            ExtendActivePowerUpDurations();
             SpawnNewFood();
             ConsiderSpawningPowerUp();
         }
@@ -91,6 +100,25 @@ public class SnakeGame
     {
         var head = Trail.Head;
         return head.X < 0 || head.X >= GridWidth || head.Y < 0 || head.Y >= GridHeight;
+    }
+
+    private void WrapSnakeHeadAroundGrid()
+    {
+        var head = Trail.Head;
+        var wrappedX = head.X;
+        var wrappedY = head.Y;
+
+        if (head.X < 0)
+            wrappedX = GridWidth - 1;
+        else if (head.X >= GridWidth)
+            wrappedX = 0;
+
+        if (head.Y < 0)
+            wrappedY = GridHeight - 1;
+        else if (head.Y >= GridHeight)
+            wrappedY = 0;
+
+        Trail.UpdateHeadPosition(new Position(wrappedX, wrappedY));
     }
 
     private bool SnakeHasConsumedFood()
@@ -240,6 +268,14 @@ public class SnakeGame
                 RemovePowerUpEffect(powerUp.Type);
                 activePowerUps.Remove(powerUp);
             }
+        }
+    }
+
+    private void ExtendActivePowerUpDurations()
+    {
+        foreach (var powerUp in activePowerUps)
+        {
+            powerUp.ExtendTimeByFoodConsumption(PowerUpExtensionPerFoodInSeconds);
         }
     }
 
