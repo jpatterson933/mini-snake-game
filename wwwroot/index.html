@@ -3,49 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
+    <title>Snake Game - Modern Arcade Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        body {
+        /* Design System - Foundation Layer */
+        :root {
+            /* Core Colors */
+            --color-primary: #4CAF50;
+            --color-primary-dark: #45a049;
+            --color-primary-glow: rgba(76, 175, 80, 0.5);
+            
+            /* Background Colors */
+            --color-background-primary: #0a0e0f;
+            --color-background-secondary: #141a1c;
+            --color-background-elevated: #1a2224;
+            --color-background-overlay: rgba(10, 14, 15, 0.95);
+            
+            /* Text Colors */
+            --color-text-primary: #ffffff;
+            --color-text-secondary: #a0adb2;
+            --color-text-muted: #6b7a80;
+            
+            /* Status Colors */
+            --color-danger: #ff4757;
+            --color-warning: #ffa502;
+            --color-success: #2ed573;
+            --color-info: #5352ed;
+            
+            /* PowerUp Colors */
+            --color-powerup-speed: #FFD700;
+            --color-powerup-multiplier: #FF1493;
+            --color-powerup-invincibility: #00BFFF;
+            --color-powerup-slowmo: #00FFFF;
+            --color-powerup-ghost: #9370DB;
+            --color-powerup-clover: #32CD32;
+            
+            /* Spacing System */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            --space-3xl: 4rem;
+            
+            /* Typography Scale */
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-md: 1rem;
+            --font-size-lg: 1.25rem;
+            --font-size-xl: 1.5rem;
+            --font-size-2xl: 2rem;
+            --font-size-3xl: 3rem;
+            --font-size-4xl: 4rem;
+            
+            /* Animation Timing */
+            --transition-fast: 150ms ease;
+            --transition-base: 300ms ease;
+            --transition-slow: 500ms ease;
+            --transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-full: 9999px;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+            --shadow-glow: 0 0 20px var(--color-primary-glow);
+        }
+
+        /* Global Reset and Base Styles */
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            color: var(--color-text-primary);
+            background: linear-gradient(135deg, var(--color-background-primary) 0%, var(--color-background-secondary) 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background-color: #1a1a1a;
-            font-family: Arial, sans-serif;
-            color: #ffffff;
+            overflow: hidden;
+            position: relative;
         }
 
+        /* Animated Background Pattern */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, var(--color-primary-glow) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 20, 147, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(0, 191, 255, 0.1) 0%, transparent 50%);
+            animation: backgroundPulse 20s ease-in-out infinite;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+        }
+
+        /* Screen Management */
         .screen {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity var(--transition-slow), transform var(--transition-slow);
             display: none;
-            text-align: center;
         }
 
         .screen.active {
             display: block;
+            opacity: 1;
+            transform: translateY(0);
+            animation: screenFadeIn var(--transition-slow) ease-out;
         }
 
+        @keyframes screenFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Typography Hierarchy */
         h1 {
-            font-size: 3rem;
-            margin-bottom: 2rem;
+            font-size: clamp(var(--font-size-2xl), 5vw, var(--font-size-4xl));
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-powerup-invincibility) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--space-2xl);
+            letter-spacing: -0.02em;
+            text-shadow: 0 0 40px var(--color-primary-glow);
+            animation: titleGlow 3s ease-in-out infinite;
         }
 
+        @keyframes titleGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        /* Modern Button Design */
         button {
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            background-color: #4CAF50;
-            color: white;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: var(--font-size-md);
+            padding: var(--space-md) var(--space-2xl);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: var(--color-text-primary);
             border: none;
-            border-radius: 5px;
+            border-radius: var(--radius-lg);
             cursor: pointer;
-            transition: background-color 0.3s;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            box-shadow: 
+                0 4px 15px rgba(76, 175, 80, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width var(--transition-slow), height var(--transition-slow);
         }
 
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 20px rgba(76, 175, 80, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 2px 10px rgba(76, 175, 80, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal System - Modern Overlay Design */
         .modal {
             display: none;
             position: fixed;
@@ -54,557 +227,998 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
+            background-color: var(--color-background-overlay);
+            backdrop-filter: blur(10px) saturate(180%);
+            -webkit-backdrop-filter: blur(10px) saturate(180%);
         }
 
         .modal.active {
             display: flex;
             justify-content: center;
             align-items: center;
+            animation: modalBackdropFadeIn var(--transition-base) ease-out;
+        }
+
+        @keyframes modalBackdropFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            padding: 30px;
-            border: 3px solid #4CAF50;
-            border-radius: 15px;
-            max-width: 700px;
+            background: linear-gradient(145deg, 
+                var(--color-background-elevated) 0%, 
+                var(--color-background-secondary) 100%);
+            padding: var(--space-2xl);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: var(--radius-xl);
+            max-width: min(700px, 90vw);
             max-height: 80vh;
             overflow-y: auto;
             box-shadow: 
-                0 0 20px rgba(76, 175, 80, 0.5),
-                0 0 40px rgba(76, 175, 80, 0.3),
-                inset 0 0 20px rgba(76, 175, 80, 0.1);
-            animation: modalGlow 2s ease-in-out infinite;
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(76, 175, 80, 0.1),
+                inset 0 0 30px rgba(76, 175, 80, 0.05);
+            animation: modalContentSlideIn var(--transition-bounce) ease-out;
+            position: relative;
+            overflow: hidden;
         }
 
-        @keyframes modalGlow {
-            0%, 100% {
-                box-shadow: 
-                    0 0 20px rgba(76, 175, 80, 0.5),
-                    0 0 40px rgba(76, 175, 80, 0.3),
-                    inset 0 0 20px rgba(76, 175, 80, 0.1);
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--color-primary-glow) 0%, transparent 70%);
+            opacity: 0.1;
+            animation: modalGlowRotate 10s linear infinite;
+        }
+
+        @keyframes modalContentSlideIn {
+            from { 
+                opacity: 0; 
+                transform: scale(0.9) translateY(20px); 
             }
-            50% {
-                box-shadow: 
-                    0 0 30px rgba(76, 175, 80, 0.7),
-                    0 0 60px rgba(76, 175, 80, 0.5),
-                    inset 0 0 30px rgba(76, 175, 80, 0.2);
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0); 
             }
+        }
+
+        @keyframes modalGlowRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         .modal-content h2 {
-            color: #4CAF50;
-            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
-            margin-top: 0;
-            font-size: 2rem;
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-powerup-invincibility) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 var(--space-xl) 0;
             text-align: center;
+            position: relative;
+            z-index: 1;
         }
 
         .modal-content h3 {
-            color: #4CAF50;
-            text-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
-            margin-top: 20px;
-            font-size: 1.5rem;
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--color-primary);
+            margin: var(--space-xl) 0 var(--space-md) 0;
+            position: relative;
+            z-index: 1;
         }
 
+        /* PowerUp Card Design */
         .powerup-item {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 12px 15px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border-left: 4px solid;
-            transition: all 0.2s;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.03) 0%, 
+                rgba(255, 255, 255, 0.01) 100%);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-sm) 0;
+            border-radius: var(--radius-md);
+            border-left: 3px solid;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .powerup-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            transition: left var(--transition-slow);
         }
 
         .powerup-item:hover {
-            transform: translateX(5px);
-            background: rgba(0, 0, 0, 0.5);
+            transform: translateX(8px);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.08) 0%, 
+                rgba(255, 255, 255, 0.03) 100%);
+        }
+
+        .powerup-item:hover::before {
+            left: 100%;
         }
 
         .powerup-icon {
-            font-size: 1.5rem;
-            margin-right: 10px;
+            font-size: var(--font-size-xl);
+            margin-right: var(--space-md);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
 
         .powerup-name {
-            font-weight: bold;
-            font-size: 1rem;
+            font-weight: 600;
+            font-size: var(--font-size-md);
             flex: 1;
+            letter-spacing: 0.02em;
         }
 
         .powerup-duration {
-            color: #aaa;
-            font-size: 0.85rem;
-            opacity: 0.8;
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
+            font-family: 'JetBrains Mono', monospace;
+            opacity: 0.9;
         }
 
         .rule-item {
-            margin: 10px 0;
-            padding-left: 20px;
-            color: #ddd;
+            margin: var(--space-md) 0;
+            padding-left: var(--space-lg);
+            color: var(--color-text-secondary);
+            line-height: 1.6;
+            font-size: var(--font-size-md);
         }
 
-        .close-btn {
-            background-color: #ff4444;
-            padding: 10px 30px;
-            margin-top: 20px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
+        /* Button Variants */
+        .button-danger {
+            background: linear-gradient(135deg, var(--color-danger) 0%, #d63031 100%);
+            margin-top: var(--space-xl);
         }
 
-        .close-btn:hover {
-            background-color: #cc0000;
+        .button-danger:hover {
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
         }
 
-        .secondary-btn {
-            background-color: #2196F3;
-            margin-top: 15px;
+        .button-secondary {
+            background: linear-gradient(135deg, var(--color-info) 0%, #3742fa 100%);
+            margin-top: var(--space-md);
         }
 
-        .secondary-btn:hover {
-            background-color: #0b7dda;
+        .button-secondary:hover {
+            box-shadow: 0 6px 20px rgba(83, 82, 237, 0.4);
         }
 
+        /* Game Layout - Main Gaming Area */
         .game-container {
             display: flex;
-            gap: 20px;
+            gap: var(--space-xl);
             align-items: flex-start;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-md);
         }
 
+        /* Game Canvas Area */
+        .game-board-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Score Display - HUD Style */
+        .game-stats-bar {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            background: linear-gradient(135deg, 
+                rgba(20, 26, 28, 0.9) 0%, 
+                rgba(26, 34, 36, 0.9) 100%);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-display {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: baseline;
+            gap: var(--space-sm);
+        }
+
+        .score-label {
+            color: var(--color-text-secondary);
+            font-size: var(--font-size-md);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .score-value {
+            color: var(--color-text-primary);
+            font-size: var(--font-size-xl);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .score-multiplier {
+            color: var(--color-warning);
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            animation: pulseMultiplier 1s ease-in-out infinite;
+        }
+
+        @keyframes pulseMultiplier {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        .speed-indicator {
+            color: var(--color-powerup-slowmo);
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        /* Active PowerUps Bar */
+        .active-powerups-bar {
+            width: 100%;
+            max-width: 600px;
+            min-height: 50px;
+            margin-bottom: var(--space-md);
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .active-powerup-badge {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-xs) var(--space-md);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                rgba(255, 255, 255, 0.02) 100%);
+            border-radius: var(--radius-md);
+            border: 1px solid;
+            backdrop-filter: blur(10px);
+            animation: powerupBadgeEntry var(--transition-bounce) ease-out;
+        }
+
+        @keyframes powerupBadgeEntry {
+            from { 
+                opacity: 0; 
+                transform: scale(0.8) translateY(-10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0); 
+            }
+        }
+
+        .powerup-progress-ring {
+            width: 100px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-top: var(--space-xs);
+        }
+
+        .powerup-progress-fill {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width var(--transition-fast) linear;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* Game Canvas Styling */
+        #gameCanvas {
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            border-radius: var(--radius-lg);
+            background: var(--color-background-elevated);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 80px rgba(76, 175, 80, 0.1),
+                inset 0 0 120px rgba(76, 175, 80, 0.03);
+            transition: all var(--transition-base);
+        }
+
+        #gameCanvas.game-active {
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.5),
+                0 0 100px rgba(76, 175, 80, 0.2),
+                inset 0 0 120px rgba(76, 175, 80, 0.05);
+        }
+
+        /* Leaderboard Widget - Glassmorphism Design */
         .leaderboard-widget {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            border: 2px solid #4CAF50;
-            border-radius: 10px;
-            padding: 15px;
-            min-width: 250px;
-            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+            background: linear-gradient(145deg, 
+                rgba(26, 34, 36, 0.9) 0%, 
+                rgba(20, 26, 28, 0.9) 100%);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            min-width: 280px;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.3),
+                inset 0 0 30px rgba(76, 175, 80, 0.03);
+            position: sticky;
+            top: var(--space-xl);
         }
 
         .leaderboard-title {
-            color: #4CAF50;
-            text-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
-            font-size: 1.2rem;
-            margin: 0 0 15px 0;
+            font-size: var(--font-size-lg);
+            font-weight: 700;
             text-align: center;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .leaderboard-title::before,
+        .leaderboard-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                var(--color-primary) 50%, 
+                transparent 100%);
         }
 
         .leaderboard-entry {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            margin: 5px 0;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
-            font-size: 0.9rem;
+            padding: var(--space-sm) var(--space-md);
+            margin: var(--space-xs) 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.03) 0%, 
+                rgba(255, 255, 255, 0.01) 100%);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .leaderboard-entry::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, 
+                var(--color-primary) 0%, 
+                var(--color-powerup-invincibility) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .leaderboard-entry:hover {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.08) 0%, 
+                rgba(255, 255, 255, 0.03) 100%);
+            transform: translateX(5px);
+        }
+
+        .leaderboard-entry:hover::before {
+            opacity: 1;
         }
 
         .leaderboard-rank {
-            font-size: 1.2rem;
-            margin-right: 8px;
+            font-size: var(--font-size-lg);
+            margin-right: var(--space-md);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .leaderboard-player {
             flex: 1;
-            color: #4CAF50;
-            font-weight: bold;
+            color: var(--color-primary);
+            font-weight: 600;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            font-size: var(--font-size-md);
         }
 
         .leaderboard-score {
-            color: #FFD700;
-            font-weight: bold;
-            margin-left: 8px;
+            color: var(--color-warning);
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-left: var(--space-md);
+            font-size: var(--font-size-md);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
 
         .leaderboard-empty {
-            color: #aaa;
+            color: var(--color-text-muted);
             text-align: center;
-            font-size: 0.85rem;
-            padding: 10px;
+            font-size: var(--font-size-sm);
+            padding: var(--space-xl) var(--space-md);
+            font-style: italic;
+        }
+
+        /* Game Over State */
+        .game-over-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            padding: var(--space-2xl);
+            background: linear-gradient(145deg, 
+                rgba(255, 71, 87, 0.1) 0%, 
+                rgba(214, 48, 49, 0.05) 100%);
+            border: 2px solid var(--color-danger);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            opacity: 0;
+            transition: all var(--transition-bounce);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(255, 71, 87, 0.3);
+        }
+
+        .game-over-overlay.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .game-over-text {
+            font-size: var(--font-size-3xl);
+            font-weight: 900;
+            color: var(--color-danger);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-md);
+            text-shadow: 0 0 30px rgba(255, 71, 87, 0.5);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .leaderboard-widget {
+                width: 100%;
+                max-width: 600px;
+                position: static;
+                margin-top: var(--space-xl);
+            }
+
+            #gameCanvas {
+                width: 90vw !important;
+                max-width: 500px;
+                height: 90vw !important;
+                max-height: 500px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Main Menu Screen -->
     <div id="mainMenu" class="screen active">
         <h1>Snake Game</h1>
-        <button id="startButton">Start</button>
-        <button id="instructionsButton" class="secondary-btn">Instructions</button>
+        <button id="startButton" aria-label="Start new game">Start Game</button>
+        <button id="instructionsButton" class="button-secondary" aria-label="View game instructions">Instructions</button>
     </div>
 
+    <!-- Game Screen -->
     <div id="gameScreen" class="screen">
         <div class="game-container">
-            <div>
-                <div style="margin-bottom: 20px;">
-                    <div style="font-size: 1.5rem; margin-bottom: 10px; display: flex; justify-content: space-between; width: 600px;">
-                        <span>Score: <span id="score">0</span> <span id="multiplier" style="color: #FFD700;"></span></span>
-                        <span id="speedIndicator" style="color: #00FFFF;"></span>
+            <div class="game-board-section">
+                <!-- Game Stats HUD -->
+                <div class="game-stats-bar">
+                    <div class="score-display">
+                        <span class="score-label">Score</span>
+                        <span id="score" class="score-value">0</span>
+                        <span id="multiplier" class="score-multiplier"></span>
                     </div>
-                    <div id="activePowerUps" style="margin-bottom: 10px; min-height: 30px;"></div>
-                    <canvas id="gameCanvas" width="600" height="600" style="border: 3px solid #4CAF50; background-color: #2a2a2a;"></canvas>
+                    <span id="speedIndicator" class="speed-indicator"></span>
                 </div>
-                <div id="gameOverMessage" style="display: none; font-size: 2rem; color: #ff6b6b; margin-bottom: 10px;">Game Over!</div>
-                <button id="exitButton">Exit to Menu</button>
+
+                <!-- Active PowerUps Display -->
+                <div id="activePowerUps" class="active-powerups-bar"></div>
+
+                <!-- Game Canvas -->
+                <canvas id="gameCanvas" width="600" height="600" aria-label="Snake game play area"></canvas>
+
+                <!-- Game Controls -->
+                <button id="exitButton" aria-label="Exit to main menu">Exit to Menu</button>
             </div>
 
-            <div class="leaderboard-widget">
-                <h3 class="leaderboard-title">🏆 TOP 5</h3>
-                <div id="leaderboardEntries"></div>
-            </div>
+            <!-- Leaderboard Sidebar -->
+            <aside class="leaderboard-widget" aria-label="Top 5 high scores">
+                <h3 class="leaderboard-title">Top 5</h3>
+                <div id="leaderboardEntries" role="list"></div>
+            </aside>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameOverOverlay" class="game-over-overlay">
+            <div class="game-over-text">Game Over!</div>
         </div>
     </div>
 
-    <div id="instructionsModal" class="modal">
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal" role="dialog" aria-labelledby="instructions-title">
         <div class="modal-content">
-            <h2>🐍 HOW TO PLAY</h2>
+            <h2 id="instructions-title">🐍 How to Play</h2>
             
             <h3>🎮 Controls</h3>
-            <div class="rule-item">Arrow Keys to move • Eat food for 10 points • Food extends powerups +1s</div>
+            <div class="rule-item">Use arrow keys to navigate • Collect food for 10 points • Each food extends active powerups by 1 second</div>
             
-            <h3>⚡ Powerups</h3>
+            <h3>⚡ Power-Ups</h3>
             
-            <div class="powerup-item" style="border-color: #FFD700;">
+            <div class="powerup-item" style="border-color: var(--color-powerup-speed);">
                 <span class="powerup-icon">⚡</span>
-                <span class="powerup-name" style="color: #FFD700;">Speed Boost</span>
+                <span class="powerup-name" style="color: var(--color-powerup-speed);">Speed Boost</span>
                 <span class="powerup-duration">5s • 50pts</span>
             </div>
             
-            <div class="powerup-item" style="border-color: #FF1493;">
+            <div class="powerup-item" style="border-color: var(--color-powerup-multiplier);">
                 <span class="powerup-icon">💎</span>
-                <span class="powerup-name" style="color: #FF1493;">Score Multiplier</span>
+                <span class="powerup-name" style="color: var(--color-powerup-multiplier);">Score Multiplier</span>
                 <span class="powerup-duration">8s • 75pts</span>
             </div>
             
-            <div class="powerup-item" style="border-color: #00BFFF;">
+            <div class="powerup-item" style="border-color: var(--color-powerup-invincibility);">
                 <span class="powerup-icon">🛡️</span>
-                <span class="powerup-name" style="color: #00BFFF;">Invincibility</span>
+                <span class="powerup-name" style="color: var(--color-powerup-invincibility);">Invincibility</span>
                 <span class="powerup-duration">6s • 100pts</span>
             </div>
             
-            <div class="powerup-item" style="border-color: #00FFFF;">
+            <div class="powerup-item" style="border-color: var(--color-powerup-slowmo);">
                 <span class="powerup-icon">⏰</span>
-                <span class="powerup-name" style="color: #00FFFF;">Slow Motion</span>
+                <span class="powerup-name" style="color: var(--color-powerup-slowmo);">Slow Motion</span>
                 <span class="powerup-duration">7s • 60pts</span>
             </div>
             
-            <div class="powerup-item" style="border-color: #9370DB;">
+            <div class="powerup-item" style="border-color: var(--color-powerup-ghost);">
                 <span class="powerup-icon">👻</span>
-                <span class="powerup-name" style="color: #9370DB;">Ghost Mode</span>
+                <span class="powerup-name" style="color: var(--color-powerup-ghost);">Ghost Mode</span>
                 <span class="powerup-duration">5s • 80pts</span>
             </div>
             
-            <div class="powerup-item" style="border-color: #32CD32;">
+            <div class="powerup-item" style="border-color: var(--color-powerup-clover);">
                 <span class="powerup-icon">🍀</span>
-                <span class="powerup-name" style="color: #32CD32;">Lucky Clover</span>
+                <span class="powerup-name" style="color: var(--color-powerup-clover);">Lucky Clover</span>
                 <span class="powerup-duration">10s • 120pts</span>
             </div>
             
-            <button id="closeInstructionsButton" class="close-btn">Close</button>
+            <button id="closeInstructionsButton" class="button-danger" aria-label="Close instructions">Close</button>
         </div>
     </div>
 
-    <div id="highScoreModal" class="modal">
+    <!-- High Score Modal -->
+    <div id="highScoreModal" class="modal" role="dialog" aria-labelledby="highscore-title">
         <div class="modal-content" style="max-width: 500px;">
-            <h2>🏆 TOP 5 HIGH SCORE!</h2>
-            <p style="font-size: 1.5rem; color: #FFD700; margin: 20px 0;">Your Score: <span id="finalScore">0</span></p>
-            <p style="margin-bottom: 20px; color: #ddd;">Enter your name to save your score:</p>
-            <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="50" 
-                style="width: 100%; padding: 12px; font-size: 1rem; border: 2px solid #4CAF50; background: #1a1a1a; color: white; border-radius: 5px; margin-bottom: 10px;" />
-            <div id="errorMessage" style="color: #ff4444; margin-bottom: 10px; display: none;"></div>
-            <button id="saveHighScoreButton" style="width: 100%; margin-top: 10px;">Save High Score</button>
-            <button id="skipHighScoreButton" class="close-btn" style="margin-top: 10px;">Skip</button>
+            <h2 id="highscore-title">🏆 New High Score!</h2>
+            <p style="font-size: var(--font-size-xl); color: var(--color-warning); margin: var(--space-lg) 0;">
+                Your Score: <span id="finalScore" style="font-weight: 700;">0</span>
+            </p>
+            <p style="margin-bottom: var(--space-lg); color: var(--color-text-secondary);">
+                Enter your name to save your score:
+            </p>
+            <input 
+                type="text" 
+                id="playerNameInput" 
+                placeholder="Enter your name" 
+                maxlength="50"
+                aria-label="Player name input"
+                style="width: 100%; padding: var(--space-md); font-size: var(--font-size-md); 
+                       border: 2px solid var(--color-primary); background: var(--color-background-elevated); 
+                       color: var(--color-text-primary); border-radius: var(--radius-md); 
+                       margin-bottom: var(--space-md); font-family: inherit; 
+                       transition: all var(--transition-base);" />
+            <div id="errorMessage" style="color: var(--color-danger); margin-bottom: var(--space-md); 
+                                          font-size: var(--font-size-sm); display: none;"></div>
+            <button id="saveHighScoreButton" style="width: 100%;">Save High Score</button>
+            <button id="skipHighScoreButton" class="button-danger" style="width: 100%; margin-top: var(--space-sm);">Skip</button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
-        const mainMenu = document.getElementById('mainMenu');
-        const gameScreen = document.getElementById('gameScreen');
-        const startButton = document.getElementById('startButton');
-        const exitButton = document.getElementById('exitButton');
-        const instructionsButton = document.getElementById('instructionsButton');
-        const instructionsModal = document.getElementById('instructionsModal');
-        const closeInstructionsButton = document.getElementById('closeInstructionsButton');
-        const highScoreModal = document.getElementById('highScoreModal');
-        const saveHighScoreButton = document.getElementById('saveHighScoreButton');
-        const skipHighScoreButton = document.getElementById('skipHighScoreButton');
-        const playerNameInput = document.getElementById('playerNameInput');
-        const errorMessage = document.getElementById('errorMessage');
-        const finalScore = document.getElementById('finalScore');
-        const leaderboardEntries = document.getElementById('leaderboardEntries');
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('score');
-        const multiplierDisplay = document.getElementById('multiplier');
-        const speedIndicator = document.getElementById('speedIndicator');
-        const activePowerUpsDisplay = document.getElementById('activePowerUps');
-        const gameOverMessage = document.getElementById('gameOverMessage');
+        // === Application State Management ===
+        const ApplicationState = {
+            gameConnection: null,
+            currentScore: 0,
+            isGameActive: false,
+            screenShake: { x: 0, y: 0 }
+        };
 
-        const CELL_SIZE = 20;
-        const RANK_MEDALS = ['🥇', '🥈', '🥉', '🏅', '🏅'];
-        
-        let connection;
-        let screenShakeOffsetX = 0;
-        let screenShakeOffsetY = 0;
-        let currentGameScore = 0;
+        // === UI Element References ===
+        const UIElements = {
+            screens: {
+                mainMenu: document.getElementById('mainMenu'),
+                gameScreen: document.getElementById('gameScreen')
+            },
+            buttons: {
+                startGame: document.getElementById('startButton'),
+                exitToMenu: document.getElementById('exitButton'),
+                viewInstructions: document.getElementById('instructionsButton'),
+                closeInstructions: document.getElementById('closeInstructionsButton'),
+                saveHighScore: document.getElementById('saveHighScoreButton'),
+                skipHighScore: document.getElementById('skipHighScoreButton')
+            },
+            modals: {
+                instructions: document.getElementById('instructionsModal'),
+                highScore: document.getElementById('highScoreModal')
+            },
+            gameDisplay: {
+                canvas: document.getElementById('gameCanvas'),
+                canvasContext: document.getElementById('gameCanvas').getContext('2d'),
+                scoreValue: document.getElementById('score'),
+                multiplierIndicator: document.getElementById('multiplier'),
+                speedStatus: document.getElementById('speedIndicator'),
+                activePowerUpsBar: document.getElementById('activePowerUps'),
+                gameOverOverlay: document.getElementById('gameOverOverlay')
+            },
+            highScore: {
+                playerNameField: document.getElementById('playerNameInput'),
+                errorDisplay: document.getElementById('errorMessage'),
+                finalScoreDisplay: document.getElementById('finalScore')
+            },
+            leaderboard: {
+                entriesContainer: document.getElementById('leaderboardEntries')
+            }
+        };
 
-        startButton.addEventListener('click', showGameScreenAndStartGame);
-        exitButton.addEventListener('click', showMainMenu);
-        instructionsButton.addEventListener('click', showInstructions);
-        closeInstructionsButton.addEventListener('click', closeInstructions);
-        saveHighScoreButton.addEventListener('click', saveHighScore);
-        skipHighScoreButton.addEventListener('click', closeHighScoreModal);
+        // === Game Configuration ===
+        const GameConfiguration = {
+            rendering: {
+                cellSize: 20,
+                canvasWidth: 600,
+                canvasHeight: 600
+            },
+            leaderboard: {
+                rankIcons: ['🥇', '🥈', '🥉', '🏅', '🏅'],
+                maxEntries: 5
+            },
+            powerUpColors: {
+                SpeedBoost: 'var(--color-powerup-speed)',
+                ScoreMultiplier: 'var(--color-powerup-multiplier)',
+                Invincibility: 'var(--color-powerup-invincibility)',
+                SlowMotion: 'var(--color-powerup-slowmo)',
+                GhostMode: 'var(--color-powerup-ghost)',
+                LuckyClover: 'var(--color-powerup-clover)'
+            }
+        };
 
-        function showGameScreenAndStartGame() {
-            mainMenu.classList.remove('active');
-            gameScreen.classList.add('active');
-            gameOverMessage.style.display = 'none';
-            connectToGameServerAndStart();
+        // === User Interface Event Handlers ===
+        function initializeUserInterfaceEventListeners() {
+            UIElements.buttons.startGame.addEventListener('click', transitionToGameAndBeginNewSession);
+            UIElements.buttons.exitToMenu.addEventListener('click', transitionBackToMainMenu);
+            UIElements.buttons.viewInstructions.addEventListener('click', displayInstructionsModal);
+            UIElements.buttons.closeInstructions.addEventListener('click', hideInstructionsModal);
+            UIElements.buttons.saveHighScore.addEventListener('click', processHighScoreSubmission);
+            UIElements.buttons.skipHighScore.addEventListener('click', dismissHighScoreModal);
         }
 
-        function showMainMenu() {
-            disconnectFromGameServer();
-            gameScreen.classList.remove('active');
-            mainMenu.classList.add('active');
+        // === Screen Navigation ===
+        function transitionToGameAndBeginNewSession() {
+            UIElements.screens.mainMenu.classList.remove('active');
+            UIElements.screens.gameScreen.classList.add('active');
+            UIElements.gameDisplay.gameOverOverlay.classList.remove('active');
+            UIElements.gameDisplay.canvas.classList.add('game-active');
+            ApplicationState.isGameActive = true;
+            establishGameServerConnectionAndInitialize();
         }
 
-        function showInstructions() {
-            instructionsModal.classList.add('active');
+        function transitionBackToMainMenu() {
+            terminateGameServerConnection();
+            UIElements.screens.gameScreen.classList.remove('active');
+            UIElements.screens.mainMenu.classList.add('active');
+            UIElements.gameDisplay.canvas.classList.remove('game-active');
+            ApplicationState.isGameActive = false;
         }
 
-        function closeInstructions() {
-            instructionsModal.classList.remove('active');
+        // === Modal Management ===
+        function displayInstructionsModal() {
+            UIElements.modals.instructions.classList.add('active');
         }
 
-        async function loadAndDisplayLeaderboard() {
+        function hideInstructionsModal() {
+            UIElements.modals.instructions.classList.remove('active');
+        }
+
+        function dismissHighScoreModal() {
+            UIElements.modals.highScore.classList.remove('active');
+        }
+
+        // === Leaderboard Display ===
+        async function fetchAndRenderLeaderboard() {
             try {
-                const topFiveScores = await connection.invoke("GetTopFiveScores");
-                renderLeaderboardEntries(topFiveScores);
+                const topScores = await ApplicationState.gameConnection.invoke("GetTopFiveScores");
+                renderLeaderboardWithScores(topScores);
             } catch (error) {
-                console.error('Error loading leaderboard:', error);
-                showLeaderboardError();
+                console.error('Leaderboard fetch failed:', error);
+                displayLeaderboardErrorState();
             }
         }
 
-        function renderLeaderboardEntries(scores) {
+        function renderLeaderboardWithScores(scores) {
             if (!scores || scores.length === 0) {
-                showEmptyLeaderboard();
+                displayEmptyLeaderboardState();
                 return;
             }
 
-            const entriesHtml = scores.map((score, index) => 
-                createLeaderboardEntryHtml(score, index)
+            const leaderboardHTML = scores.map((score, position) => 
+                generateLeaderboardEntryHTML(score, position)
             ).join('');
             
-            leaderboardEntries.innerHTML = entriesHtml;
+            UIElements.leaderboard.entriesContainer.innerHTML = leaderboardHTML;
         }
 
-        function createLeaderboardEntryHtml(score, index) {
-            const rankMedal = RANK_MEDALS[index];
-            const playerName = score.playerName;
-            const playerScore = score.score;
+        function generateLeaderboardEntryHTML(scoreEntry, position) {
+            const rankIcon = GameConfiguration.leaderboard.rankIcons[position];
+            const { playerName, score } = scoreEntry;
 
             return `
-                <div class="leaderboard-entry">
-                    <span class="leaderboard-rank">${rankMedal}</span>
+                <div class="leaderboard-entry" role="listitem">
+                    <span class="leaderboard-rank">${rankIcon}</span>
                     <span class="leaderboard-player">${playerName}</span>
-                    <span class="leaderboard-score">${playerScore}</span>
+                    <span class="leaderboard-score">${score}</span>
                 </div>
             `;
         }
 
-        function showEmptyLeaderboard() {
-            leaderboardEntries.innerHTML = '<div class="leaderboard-empty">No scores yet!</div>';
+        function displayEmptyLeaderboardState() {
+            UIElements.leaderboard.entriesContainer.innerHTML = 
+                '<div class="leaderboard-empty">No high scores yet. Be the first!</div>';
         }
 
-        function showLeaderboardError() {
-            leaderboardEntries.innerHTML = '<div class="leaderboard-empty" style="color: #ff4444;">Failed to load</div>';
+        function displayLeaderboardErrorState() {
+            UIElements.leaderboard.entriesContainer.innerHTML = 
+                '<div class="leaderboard-empty" style="color: var(--color-danger);">Unable to load scores</div>';
         }
 
-        async function checkAndShowHighScoreModal(score) {
+        // === High Score Management ===
+        async function evaluateScoreAndShowHighScoreModalIfEligible(finalScore) {
             try {
-                currentGameScore = score;
-                const isTopFive = await connection.invoke("IsTopFiveScore", score);
+                ApplicationState.currentScore = finalScore;
+                const qualifiesForTopFive = await ApplicationState.gameConnection.invoke("IsTopFiveScore", finalScore);
                 
-                if (isTopFive) {
-                    finalScore.textContent = score;
-                    playerNameInput.value = '';
-                    errorMessage.style.display = 'none';
-                    highScoreModal.classList.add('active');
+                if (qualifiesForTopFive) {
+                    prepareHighScoreModalForDisplay(finalScore);
+                    UIElements.modals.highScore.classList.add('active');
                 }
-            } catch (err) {
-                console.error('Error checking high score:', err);
+            } catch (error) {
+                console.error('High score evaluation failed:', error);
             }
         }
 
-        async function saveHighScore() {
-            const playerName = playerNameInput.value.trim();
+        function prepareHighScoreModalForDisplay(score) {
+            UIElements.highScore.finalScoreDisplay.textContent = score;
+            UIElements.highScore.playerNameField.value = '';
+            UIElements.highScore.errorDisplay.style.display = 'none';
+        }
+
+        async function processHighScoreSubmission() {
+            const playerName = extractAndValidatePlayerName();
             
             if (!playerName) {
-                displayValidationError('Please enter your name');
+                showHighScoreValidationError('Please enter your name');
                 return;
             }
 
+            await attemptToSaveHighScore(playerName);
+        }
+
+        function extractAndValidatePlayerName() {
+            return UIElements.highScore.playerNameField.value.trim();
+        }
+
+        async function attemptToSaveHighScore(playerName) {
             try {
-                disableSaveButton();
-                const result = await connection.invoke("SaveHighScore", playerName, currentGameScore);
+                setHighScoreSaveButtonToLoadingState();
+                const saveResult = await ApplicationState.gameConnection.invoke(
+                    "SaveHighScore", 
+                    playerName, 
+                    ApplicationState.currentScore
+                );
                 
-                if (result.success) {
-                    closeHighScoreModal();
-                    await loadAndDisplayLeaderboard();
+                if (saveResult.success) {
+                    handleSuccessfulHighScoreSave();
                 } else {
-                    displayValidationError(result.error);
+                    showHighScoreValidationError(saveResult.error);
                 }
             } catch (error) {
-                displayValidationError('Failed to save high score. Please try again.');
-                console.error('Error saving high score:', error);
+                showHighScoreValidationError('Unable to save score. Please try again.');
+                console.error('High score save failed:', error);
             } finally {
-                enableSaveButton();
+                resetHighScoreSaveButtonState();
             }
         }
 
-        function disableSaveButton() {
-            saveHighScoreButton.disabled = true;
-            saveHighScoreButton.textContent = 'Saving...';
+        function handleSuccessfulHighScoreSave() {
+            dismissHighScoreModal();
+            fetchAndRenderLeaderboard();
         }
 
-        function enableSaveButton() {
-            saveHighScoreButton.disabled = false;
-            saveHighScoreButton.textContent = 'Save High Score';
+        function setHighScoreSaveButtonToLoadingState() {
+            UIElements.buttons.saveHighScore.disabled = true;
+            UIElements.buttons.saveHighScore.textContent = 'Saving...';
         }
 
-        function displayValidationError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
+        function resetHighScoreSaveButtonState() {
+            UIElements.buttons.saveHighScore.disabled = false;
+            UIElements.buttons.saveHighScore.textContent = 'Save High Score';
         }
 
-        function closeHighScoreModal() {
-            highScoreModal.classList.remove('active');
+        function showHighScoreValidationError(errorMessage) {
+            UIElements.highScore.errorDisplay.textContent = errorMessage;
+            UIElements.highScore.errorDisplay.style.display = 'block';
         }
 
-        function connectToGameServerAndStart() {
-            connection = new signalR.HubConnectionBuilder()
+        // === Game Server Connection ===
+        function establishGameServerConnectionAndInitialize() {
+            ApplicationState.gameConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/gameHub")
                 .build();
 
-            connection.on("UpdateGameState", renderGameStateOnCanvas);
+            ApplicationState.gameConnection.on("UpdateGameState", processAndRenderGameStateUpdate);
 
-            connection.start()
+            ApplicationState.gameConnection.start()
                 .then(() => {
-                    connection.invoke("StartNewGame");
-                    loadAndDisplayLeaderboard();
+                    ApplicationState.gameConnection.invoke("StartNewGame");
+                    fetchAndRenderLeaderboard();
                 })
-                .catch(err => console.error(err));
+                .catch(error => console.error('Connection failed:', error));
 
-            listenForPlayerKeyboardInput();
+            registerKeyboardInputHandlers();
         }
 
-        function disconnectFromGameServer() {
-            if (connection) {
-                connection.stop();
+        function terminateGameServerConnection() {
+            if (ApplicationState.gameConnection) {
+                ApplicationState.gameConnection.stop();
             }
         }
 
-        function listenForPlayerKeyboardInput() {
-            document.addEventListener('keydown', handleKeyPress);
+        // === Input Handling ===
+        function registerKeyboardInputHandlers() {
+            document.addEventListener('keydown', processPlayerMovementInput);
         }
 
-        function handleKeyPress(event) {
-            const directionMap = {
+        function processPlayerMovementInput(keyboardEvent) {
+            const movementDirections = {
                 'ArrowUp': 'up',
                 'ArrowDown': 'down',
                 'ArrowLeft': 'left',
                 'ArrowRight': 'right'
             };
 
-            const direction = directionMap[event.key];
-            if (direction && connection) {
-                connection.invoke("ChangeDirection", direction);
-                event.preventDefault();
+            const requestedDirection = movementDirections[keyboardEvent.key];
+            if (requestedDirection && ApplicationState.gameConnection) {
+                ApplicationState.gameConnection.invoke("ChangeDirection", requestedDirection);
+                keyboardEvent.preventDefault();
             }
         }
 
-        function renderGameStateOnCanvas(gameState) {
-            applyVisualEffects(gameState.visualEffects);
+        // === Game State Rendering ===
+        function processAndRenderGameStateUpdate(gameState) {
+            applyScreenEffectsFromGameState(gameState.visualEffects);
             
+            const ctx = UIElements.gameDisplay.canvasContext;
             ctx.save();
-            ctx.translate(screenShakeOffsetX, screenShakeOffsetY);
+            ctx.translate(ApplicationState.screenShake.x, ApplicationState.screenShake.y);
             
-            clearCanvas();
-            drawParticles(gameState.particles);
-            drawSnakeTrail(gameState.trail, gameState.colors, gameState.activePowerUps);
-            drawFood(gameState.food);
+            renderGameBoard();
+            renderParticleEffects(gameState.particles);
+            renderSnakeWithPowerUpEffects(gameState.trail, gameState.colors, gameState.activePowerUps);
+            renderFoodItem(gameState.food);
             
             if (gameState.powerUp) {
-                drawPowerUp(gameState.powerUp);
+                renderPowerUpItem(gameState.powerUp);
             }
             
             ctx.restore();
             
-            updateScoreDisplay(gameState.score, gameState.scoreMultiplier);
-            updateSpeedIndicator(gameState.gameSpeed);
-            updateActivePowerUpsDisplay(gameState.activePowerUps);
+            updateGameHUDElements(gameState);
             
             if (gameState.isGameOver) {
-                showGameOverMessage();
-                checkAndShowHighScoreModal(gameState.score);
+                displayGameOverSequence();
+                evaluateScoreAndShowHighScoreModalIfEligible(gameState.score);
             }
         }
 
-        function clearCanvas() {
-            ctx.fillStyle = '#2a2a2a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        function renderGameBoard() {
+            const ctx = UIElements.gameDisplay.canvasContext;
+            ctx.fillStyle = 'var(--color-background-elevated)';
+            ctx.fillRect(0, 0, 
+                GameConfiguration.rendering.canvasWidth, 
+                GameConfiguration.rendering.canvasHeight
+            );
         }
 
-        function drawSnakeTrail(segments, colors, activePowerUps) {
-            const hasInvincibility = activePowerUps?.some(p => p.type === 'Invincibility');
-            const hasGhostMode = activePowerUps?.some(p => p.type === 'GhostMode');
+        function renderSnakeWithPowerUpEffects(trailSegments, segmentColors, activePowerUps) {
+            const ctx = UIElements.gameDisplay.canvasContext;
+            const hasInvincibility = activePowerUps?.some(powerUp => powerUp.type === 'Invincibility');
+            const hasGhostMode = activePowerUps?.some(powerUp => powerUp.type === 'GhostMode');
             
-            segments.forEach((segment, index) => {
-                const color = colors[Math.min(index, colors.length - 1)];
+            trailSegments.forEach((segment, segmentIndex) => {
+                const segmentColor = segmentColors[Math.min(segmentIndex, segmentColors.length - 1)];
                 
-                if (hasGhostMode) {
-                    ctx.globalAlpha = 0.5;
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = '#9370DB';
-                }
+                applyGhostModeEffectIfActive(ctx, hasGhostMode);
+                applyInvincibilityEffectToHead(ctx, hasInvincibility, segmentIndex);
                 
-                if (hasInvincibility && index === 0) {
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#00BFFF';
-                }
-                
-                ctx.fillStyle = color;
+                ctx.fillStyle = segmentColor;
                 ctx.fillRect(
-                    segment.x * CELL_SIZE,
-                    segment.y * CELL_SIZE,
-                    CELL_SIZE - 2,
-                    CELL_SIZE - 2
+                    segment.x * GameConfiguration.rendering.cellSize,
+                    segment.y * GameConfiguration.rendering.cellSize,
+                    GameConfiguration.rendering.cellSize - 2,
+                    GameConfiguration.rendering.cellSize - 2
                 );
                 
-                ctx.globalAlpha = 1.0;
-                ctx.shadowBlur = 0;
+                resetCanvasEffects(ctx);
             });
         }
 
-        function drawFood(food) {
+        function applyGhostModeEffectIfActive(context, isGhostModeActive) {
+            if (isGhostModeActive) {
+                context.globalAlpha = 0.5;
+                context.shadowBlur = 20;
+                context.shadowColor = GameConfiguration.powerUpColors.GhostMode;
+            }
+        }
+
+        function applyInvincibilityEffectToHead(context, isInvincibilityActive, segmentIndex) {
+            if (isInvincibilityActive && segmentIndex === 0) {
+                context.shadowBlur = 15;
+                context.shadowColor = GameConfiguration.powerUpColors.Invincibility;
+            }
+        }
+
+        function resetCanvasEffects(context) {
+            context.globalAlpha = 1.0;
+            context.shadowBlur = 0;
+        }
+
+        function renderFoodItem(foodData) {
+            const ctx = UIElements.gameDisplay.canvasContext;
+            const cellSize = GameConfiguration.rendering.cellSize;
+            
             ctx.save();
             ctx.shadowBlur = 10;
-            ctx.shadowColor = food.color;
-            ctx.fillStyle = food.color;
+            ctx.shadowColor = foodData.color;
+            ctx.fillStyle = foodData.color;
             ctx.beginPath();
             ctx.arc(
-                food.position.x * CELL_SIZE + CELL_SIZE / 2,
-                food.position.y * CELL_SIZE + CELL_SIZE / 2,
-                CELL_SIZE / 2 - 2,
+                foodData.position.x * cellSize + cellSize / 2,
+                foodData.position.y * cellSize + cellSize / 2,
+                cellSize / 2 - 2,
                 0,
                 Math.PI * 2
             );
@@ -612,41 +1226,46 @@
             ctx.restore();
         }
 
-        function drawPowerUp(powerUp) {
-            const centerX = powerUp.position.x * CELL_SIZE + CELL_SIZE / 2;
-            const centerY = powerUp.position.y * CELL_SIZE + CELL_SIZE / 2;
+        function renderPowerUpItem(powerUpData) {
+            const ctx = UIElements.gameDisplay.canvasContext;
+            const cellSize = GameConfiguration.rendering.cellSize;
+            const centerX = powerUpData.position.x * cellSize + cellSize / 2;
+            const centerY = powerUpData.position.y * cellSize + cellSize / 2;
             
             ctx.save();
             ctx.translate(centerX, centerY);
             
-            ctx.shadowBlur = 20 * powerUp.pulse;
-            ctx.shadowColor = powerUp.color;
+            ctx.shadowBlur = 20 * powerUpData.pulse;
+            ctx.shadowColor = powerUpData.color;
             
-            ctx.fillStyle = powerUp.color;
+            ctx.fillStyle = powerUpData.color;
             ctx.beginPath();
-            ctx.arc(0, 0, (CELL_SIZE / 2) * powerUp.pulse, 0, Math.PI * 2);
+            ctx.arc(0, 0, (cellSize / 2) * powerUpData.pulse, 0, Math.PI * 2);
             ctx.fill();
             
-            ctx.font = `${CELL_SIZE}px Arial`;
+            ctx.font = `${cellSize}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(powerUp.icon, 0, 0);
+            ctx.fillText(powerUpData.icon, 0, 0);
             
             ctx.restore();
         }
 
-        function drawParticles(particles) {
-            if (!particles) return;
+        function renderParticleEffects(particlesArray) {
+            if (!particlesArray) return;
             
-            particles.forEach(particle => {
+            const ctx = UIElements.gameDisplay.canvasContext;
+            const cellSize = GameConfiguration.rendering.cellSize;
+            
+            particlesArray.forEach(particle => {
                 ctx.save();
                 ctx.globalAlpha = particle.opacity;
                 ctx.fillStyle = particle.color;
                 ctx.beginPath();
                 ctx.arc(
-                    particle.x * CELL_SIZE,
-                    particle.y * CELL_SIZE,
-                    particle.size * CELL_SIZE,
+                    particle.x * cellSize,
+                    particle.y * cellSize,
+                    particle.size * cellSize,
                     0,
                     Math.PI * 2
                 );
@@ -655,12 +1274,22 @@
             });
         }
 
-        function updateScoreDisplay(score, scoreMultiplier) {
-            scoreDisplay.textContent = score;
-            multiplierDisplay.textContent = scoreMultiplier > 1 ? `x${scoreMultiplier}` : '';
+        // === HUD Updates ===
+        function updateGameHUDElements(gameState) {
+            updateScoreAndMultiplier(gameState.score, gameState.scoreMultiplier);
+            updateSpeedStatusIndicator(gameState.gameSpeed);
+            updateActivePowerUpsBar(gameState.activePowerUps);
         }
 
-        function updateSpeedIndicator(gameSpeed) {
+        function updateScoreAndMultiplier(currentScore, multiplier) {
+            UIElements.gameDisplay.scoreValue.textContent = currentScore;
+            UIElements.gameDisplay.multiplierIndicator.textContent = 
+                multiplier > 1 ? `×${multiplier}` : '';
+        }
+
+        function updateSpeedStatusIndicator(gameSpeed) {
+            const speedIndicator = UIElements.gameDisplay.speedStatus;
+            
             if (gameSpeed > 1) {
                 speedIndicator.textContent = '⚡ SPEED BOOST';
             } else if (gameSpeed < 1) {
@@ -670,52 +1299,60 @@
             }
         }
 
-        function updateActivePowerUpsDisplay(activePowerUps) {
+        function updateActivePowerUpsBar(activePowerUps) {
             if (!activePowerUps || activePowerUps.length === 0) {
-                activePowerUpsDisplay.innerHTML = '';
+                UIElements.gameDisplay.activePowerUpsBar.innerHTML = '';
                 return;
             }
             
-            activePowerUpsDisplay.innerHTML = activePowerUps.map(powerUp => {
-                const progressPercent = (powerUp.progress * 100).toFixed(0);
-                const typeColors = {
-                    'SpeedBoost': '#FFD700',
-                    'ScoreMultiplier': '#FF1493',
-                    'Invincibility': '#00BFFF',
-                    'SlowMotion': '#00FFFF',
-                    'GhostMode': '#9370DB',
-                    'LuckyClover': '#32CD32'
-                };
-                const color = typeColors[powerUp.type] || '#fff';
-                return `
-                    <div style="display: inline-block; margin-right: 15px; padding: 5px 10px; background: rgba(0,0,0,0.5); border-radius: 5px; border: 2px solid ${color};">
-                        <span style="color: ${color};">${powerUp.type}</span>
-                        <div style="width: 100px; height: 4px; background: #333; margin-top: 3px; border-radius: 2px;">
-                            <div style="width: ${progressPercent}%; height: 100%; background: ${color}; border-radius: 2px;"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            UIElements.gameDisplay.activePowerUpsBar.innerHTML = 
+                activePowerUps.map(generatePowerUpBadgeHTML).join('');
         }
 
-        function applyVisualEffects(visualEffects) {
+        function generatePowerUpBadgeHTML(powerUp) {
+            const progressPercentage = Math.floor(powerUp.progress * 100);
+            const powerUpColor = GameConfiguration.powerUpColors[powerUp.type] || '#ffffff';
+            
+            return `
+                <div class="active-powerup-badge" style="border-color: ${powerUpColor};">
+                    <span style="color: ${powerUpColor}; font-weight: 600;">${formatPowerUpName(powerUp.type)}</span>
+                    <div class="powerup-progress-ring">
+                        <div class="powerup-progress-fill" 
+                             style="width: ${progressPercentage}%; 
+                                    background: ${powerUpColor};"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatPowerUpName(powerUpType) {
+            return powerUpType.replace(/([A-Z])/g, ' $1').trim();
+        }
+
+        // === Visual Effects ===
+        function applyScreenEffectsFromGameState(visualEffects) {
             if (!visualEffects) return;
             
-            screenShakeOffsetX = 0;
-            screenShakeOffsetY = 0;
+            ApplicationState.screenShake.x = 0;
+            ApplicationState.screenShake.y = 0;
             
             visualEffects.forEach(effect => {
                 if (effect.type === 'ScreenShake') {
-                    screenShakeOffsetX = (Math.random() - 0.5) * effect.intensity;
-                    screenShakeOffsetY = (Math.random() - 0.5) * effect.intensity;
+                    ApplicationState.screenShake.x = (Math.random() - 0.5) * effect.intensity;
+                    ApplicationState.screenShake.y = (Math.random() - 0.5) * effect.intensity;
                 }
             });
         }
 
-        function showGameOverMessage() {
-            gameOverMessage.style.display = 'block';
+        function displayGameOverSequence() {
+            UIElements.gameDisplay.gameOverOverlay.classList.add('active');
+            ApplicationState.isGameActive = false;
         }
+
+        // === Initialize Application ===
+        initializeUserInterfaceEventListeners();
     </script>
 </body>
 </html>
+
 
