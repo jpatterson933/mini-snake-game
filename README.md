@@ -4,7 +4,7 @@ A mini snake game built with C# and ASP.NET Core.
 
 ## Prerequisites
 
-- .NET 8.0 SDK
+- .NET 9.0 SDK
 
 ## Local Development
 

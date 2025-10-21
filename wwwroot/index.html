@@ -64,15 +64,18 @@
         const startButton = document.getElementById('startButton');
         const exitButton = document.getElementById('exitButton');
 
-        startButton.addEventListener('click', () => {
+        startButton.addEventListener('click', showGameScreen);
+        exitButton.addEventListener('click', showMainMenu);
+
+        function showGameScreen() {
             mainMenu.classList.remove('active');
             gameScreen.classList.add('active');
-        });
+        }
 
-        exitButton.addEventListener('click', () => {
+        function showMainMenu() {
             gameScreen.classList.remove('active');
             mainMenu.classList.add('active');
-        });
+        }
     </script>
 </body>
 </html>

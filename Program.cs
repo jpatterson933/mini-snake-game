@@ -2,13 +2,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://0.0.0.0:{port}");
-
-app.MapGet("/health", () => "OK");
+ConfigureStaticFileServing(app);
+ConfigureServerToListenOnRailwayPort(app);
+ConfigureHealthCheckEndpoint(app);
 
 app.Run();
+
+void ConfigureStaticFileServing(WebApplication application)
+{
+    application.UseDefaultFiles();
+    application.UseStaticFiles();
+}
+
+void ConfigureServerToListenOnRailwayPort(WebApplication application)
+{
+    var railwayProvidedPort = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    application.Urls.Add($"http://0.0.0.0:{railwayProvidedPort}");
+}
+
+void ConfigureHealthCheckEndpoint(WebApplication application)
+{
+    application.MapGet("/health", () => "OK");
+}
 
