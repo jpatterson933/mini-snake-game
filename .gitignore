@@ -94,4 +94,3 @@ artifacts/
 .cursorindexingignore
 
 node_modules/
-wwwroot/dist/
