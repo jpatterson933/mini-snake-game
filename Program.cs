@@ -1,13 +1,23 @@
+using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using SnakeGame.Hubs;
+using Serilog;
+using SnakeGame.Configuration;
 using SnakeGame.Data;
-using SnakeGame.Services;
+using SnakeGame.Hubs;
+using SnakeGame.Repositories;
+using SnakeGame.Validation;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+ConfigureSerilogLogging(builder);
+AddConfigurationOptions(builder);
 AddSignalRForRealtimeGameCommunication(builder);
 AddDatabaseConfiguration(builder);
-AddServices(builder);
+AddRepositories(builder);
+AddValidators(builder);
+AddMediatRForDomainEvents(builder);
 
 var app = builder.Build();
 
@@ -18,6 +28,23 @@ ConfigureSnakeGameHub(app);
 
 app.Run();
 
+void ConfigureSerilogLogging(WebApplicationBuilder applicationBuilder)
+{
+    Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(applicationBuilder.Configuration)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .CreateLogger();
+
+    applicationBuilder.Host.UseSerilog();
+}
+
+void AddConfigurationOptions(WebApplicationBuilder applicationBuilder)
+{
+    applicationBuilder.Services.Configure<GameConfiguration>(
+        applicationBuilder.Configuration.GetSection(GameConfiguration.SectionName));
+}
+
 void AddSignalRForRealtimeGameCommunication(WebApplicationBuilder applicationBuilder)
 {
     applicationBuilder.Services.AddSignalR();
@@ -26,26 +53,36 @@ void AddSignalRForRealtimeGameCommunication(WebApplicationBuilder applicationBui
 void AddDatabaseConfiguration(WebApplicationBuilder applicationBuilder)
 {
     var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-    
+
     if (string.IsNullOrEmpty(connectionString))
     {
         throw new InvalidOperationException("DATABASE_URL environment variable is not set. Please configure PostgreSQL connection string in Railway.");
     }
 
-    // Railway provides DATABASE_URL in format: postgres://user:password@host:port/database
-    // Convert to Npgsql connection string format
     var databaseUri = new Uri(connectionString);
     var userInfo = databaseUri.UserInfo.Split(':');
-    
+
     var npgsqlConnectionString = $"Host={databaseUri.Host};Port={databaseUri.Port};Database={databaseUri.AbsolutePath.Trim('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
 
     applicationBuilder.Services.AddDbContext<SnakeGameDbContext>(options =>
         options.UseNpgsql(npgsqlConnectionString));
 }
 
-void AddServices(WebApplicationBuilder applicationBuilder)
+void AddRepositories(WebApplicationBuilder applicationBuilder)
 {
-    applicationBuilder.Services.AddScoped<InputValidationService>();
+    applicationBuilder.Services.AddScoped<IHighScoreRepository, HighScoreRepository>();
+}
+
+void AddValidators(WebApplicationBuilder applicationBuilder)
+{
+    applicationBuilder.Services.AddScoped<IValidator<string>, PlayerNameValidator>();
+    applicationBuilder.Services.AddScoped<PlayerNameSanitizer>();
+}
+
+void AddMediatRForDomainEvents(WebApplicationBuilder applicationBuilder)
+{
+    applicationBuilder.Services.AddMediatR(cfg =>
+        cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 }
 
 void ConfigureStaticFileServing(WebApplication application)

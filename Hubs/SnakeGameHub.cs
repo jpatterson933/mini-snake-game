@@ -1,8 +1,12 @@
+using FluentResults;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using SnakeGame.Configuration;
 using SnakeGame.GameLogic;
-using SnakeGame.Data;
-using SnakeGame.Services;
+using SnakeGame.Repositories;
+using SnakeGame.Validation;
 
 namespace SnakeGame.Hubs;
 
@@ -10,26 +14,44 @@ public class SnakeGameHub : Hub
 {
     private static readonly Dictionary<string, GameLogic.SnakeGame> ActiveGames = new();
     private static readonly Dictionary<string, Timer> GameTimers = new();
-    private readonly IHubContext<SnakeGameHub> _hubContext;
-    private readonly SnakeGameDbContext _dbContext;
-    private readonly InputValidationService _validationService;
 
-    public SnakeGameHub(IHubContext<SnakeGameHub> hubContext, SnakeGameDbContext dbContext, InputValidationService validationService)
+    private readonly IHubContext<SnakeGameHub> _hubContext;
+    private readonly IHighScoreRepository _highScoreRepository;
+    private readonly IValidator<string> _playerNameValidator;
+    private readonly PlayerNameSanitizer _playerNameSanitizer;
+    private readonly GameConfiguration _gameConfig;
+    private readonly IMediator _mediator;
+    private readonly ILogger<SnakeGameHub> _logger;
+
+    public SnakeGameHub(
+        IHubContext<SnakeGameHub> hubContext,
+        IHighScoreRepository highScoreRepository,
+        IValidator<string> playerNameValidator,
+        PlayerNameSanitizer playerNameSanitizer,
+        IOptions<GameConfiguration> gameConfig,
+        IMediator mediator,
+        ILogger<SnakeGameHub> logger)
     {
         _hubContext = hubContext;
-        _dbContext = dbContext;
-        _validationService = validationService;
+        _highScoreRepository = highScoreRepository;
+        _playerNameValidator = playerNameValidator;
+        _playerNameSanitizer = playerNameSanitizer;
+        _gameConfig = gameConfig.Value;
+        _mediator = mediator;
+        _logger = logger;
     }
 
     public async Task StartNewGame()
     {
         var connectionId = Context.ConnectionId;
-        
+
+        _logger.LogInformation("Player {ConnectionId} starting new game", connectionId);
+
         StopExistingGameIfRunning(connectionId);
-        
-        var newGame = new GameLogic.SnakeGame();
+
+        var newGame = new GameLogic.SnakeGame(_gameConfig, _mediator);
         ActiveGames[connectionId] = newGame;
-        
+
         await SendCurrentGameStateToClient(connectionId, newGame);
         StartGameLoop(connectionId);
     }
@@ -55,63 +77,50 @@ public class SnakeGameHub : Hub
 
     public async Task<bool> IsTopFiveScore(int score)
     {
-        if (score <= 0)
-            return false;
-
-        var topFiveScores = await _dbContext.HighScores
-            .OrderByDescending(h => h.Score)
-            .Take(5)
-            .ToListAsync();
-
-        if (topFiveScores.Count < 5)
-            return true;
-
-        return score > topFiveScores.Min(h => h.Score);
+        _logger.LogInformation("Checking if score {Score} is a top five score", score);
+        return await _highScoreRepository.IsTopFiveScore(score);
     }
 
     public async Task<object> SaveHighScore(string playerName, int score)
     {
-        var validationResult = _validationService.ValidatePlayerName(playerName);
-        
+        _logger.LogInformation("Attempting to save high score for player {PlayerName} with score {Score}", playerName, score);
+
+        var validationResult = await _playerNameValidator.ValidateAsync(playerName);
+
         if (!validationResult.IsValid)
         {
-            return new { success = false, error = validationResult.Message };
+            var firstError = validationResult.Errors.First().ErrorMessage;
+            _logger.LogWarning("Player name validation failed: {ErrorMessage}", firstError);
+            return new { success = false, error = firstError };
         }
 
         if (score <= 0)
         {
+            _logger.LogWarning("Invalid score attempted: {Score}", score);
             return new { success = false, error = "Invalid score." };
         }
 
-        var sanitizedName = validationResult.Message;
+        var sanitizedName = _playerNameSanitizer.SanitizePlayerName(playerName);
 
-        var highScore = new HighScore
-        {
-            PlayerName = sanitizedName,
-            Score = score,
-            CreatedAt = DateTime.UtcNow
-        };
+        await _highScoreRepository.SaveHighScore(sanitizedName, score);
 
-        _dbContext.HighScores.Add(highScore);
-        await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("High score saved successfully for {PlayerName} with score {Score}", sanitizedName, score);
 
         return new { success = true, message = "High score saved successfully!" };
     }
 
     public async Task<List<object>> GetTopFiveScores()
     {
-        var topScores = await _dbContext.HighScores
-            .OrderByDescending(h => h.Score)
-            .Take(5)
-            .Select(h => new
-            {
-                playerName = h.PlayerName,
-                score = h.Score,
-                date = h.CreatedAt
-            })
-            .ToListAsync();
+        _logger.LogDebug("Fetching top five scores");
 
-        return topScores.Cast<object>().ToList();
+        var topScores = await _highScoreRepository.GetTopFiveScores();
+
+        return topScores.Select(h => new
+        {
+            playerName = h.PlayerName,
+            score = h.Score,
+            date = h.CreatedAt
+        } as object).ToList();
     }
 
     private void StartGameLoop(string connectionId)
@@ -126,9 +135,8 @@ public class SnakeGameHub : Hub
 
         StopExistingTimerIfRunning(connectionId);
 
-        var baseIntervalInMilliseconds = 100;
-        var adjustedInterval = (int)(baseIntervalInMilliseconds / game.GameSpeed);
-        
+        var adjustedInterval = (int)(_gameConfig.BaseGameTickIntervalInMilliseconds / game.GameSpeed);
+
         var timer = new Timer(async _ => await GameLoopTick(connectionId), null, adjustedInterval, adjustedInterval);
         GameTimers[connectionId] = timer;
     }
