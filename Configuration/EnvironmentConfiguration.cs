@@ -14,7 +14,7 @@ public class EnvironmentConfiguration
             DatabaseUrl = System.Environment.GetEnvironmentVariable("DATABASE_URL") ?? string.Empty,
             BaseUrl = System.Environment.GetEnvironmentVariable("BASE_URL") ?? string.Empty,
             Port = System.Environment.GetEnvironmentVariable("PORT") ?? "8080",
-            Environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development"
+            Environment = System.Environment.GetEnvironmentVariable("ENV") ?? "dev"
         };
     }
 
@@ -22,7 +22,7 @@ public class EnvironmentConfiguration
     
     public bool HasBaseUrl() => !string.IsNullOrEmpty(BaseUrl);
 
-    public bool IsProduction() => Environment.Equals("Production", StringComparison.OrdinalIgnoreCase);
+    public bool IsProduction() => Environment.Equals("prod", StringComparison.OrdinalIgnoreCase);
 
     public string GetServerUrlForDisplay()
     {
