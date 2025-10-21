@@ -1,13 +1,15 @@
+using MediatR;
+using SnakeGame.Configuration;
+using SnakeGame.GameLogic.Events;
+using SnakeGame.GameLogic.PowerUpEffects;
+
 namespace SnakeGame.GameLogic;
 
 public class SnakeGame
 {
-    private const int GridWidth = 30;
-    private const int GridHeight = 30;
-    private const double BasePowerUpSpawnChance = 0.15;
-    private const double BoostedPowerUpSpawnChance = 0.50;
-    private const int TicksBeforeNextPowerUpCanSpawn = 30;
-    private const double PowerUpExtensionPerFoodInSeconds = 1.0;
+    private readonly GameConfiguration _config;
+    private readonly PowerUpEffectFactory _powerUpEffectFactory;
+    private readonly IMediator _mediator;
 
     public SnakeTrail Trail { get; private set; }
     public Food CurrentFood { get; private set; }
@@ -26,9 +28,13 @@ public class SnakeGame
     public IReadOnlyList<ActivePowerUp> ActivePowerUps => activePowerUps.AsReadOnly();
     public IReadOnlyList<VisualEffect> ActiveVisualEffects => activeVisualEffects.AsReadOnly();
 
-    public SnakeGame()
+    public SnakeGame(GameConfiguration config, IMediator mediator)
     {
-        var centerOfGrid = new Position(GridWidth / 2, GridHeight / 2);
+        _config = config;
+        _mediator = mediator;
+        _powerUpEffectFactory = new PowerUpEffectFactory();
+
+        var centerOfGrid = new Position(_config.GridWidth / 2, _config.GridHeight / 2);
         Trail = new SnakeTrail(centerOfGrid);
         CurrentFood = CreateFoodAtRandomLocation();
         Particles = new ParticleSystem();
@@ -36,7 +42,7 @@ public class SnakeGame
         IsGameOver = false;
         ScoreMultiplier = 1;
         GameSpeed = 1.0;
-        CurrentPowerUpSpawnChance = BasePowerUpSpawnChance;
+        CurrentPowerUpSpawnChance = _config.BasePowerUpSpawnChance;
         CurrentPowerUp = null;
     }
 
@@ -102,7 +108,7 @@ public class SnakeGame
     private bool SnakeHasMovedOutOfBounds()
     {
         var head = Trail.Head;
-        return head.X < 0 || head.X >= GridWidth || head.Y < 0 || head.Y >= GridHeight;
+        return head.X < 0 || head.X >= _config.GridWidth || head.Y < 0 || head.Y >= _config.GridHeight;
     }
 
     private void WrapSnakeHeadAroundGrid()
@@ -112,13 +118,13 @@ public class SnakeGame
         var wrappedY = head.Y;
 
         if (head.X < 0)
-            wrappedX = GridWidth - 1;
-        else if (head.X >= GridWidth)
+            wrappedX = _config.GridWidth - 1;
+        else if (head.X >= _config.GridWidth)
             wrappedX = 0;
 
         if (head.Y < 0)
-            wrappedY = GridHeight - 1;
-        else if (head.Y >= GridHeight)
+            wrappedY = _config.GridHeight - 1;
+        else if (head.Y >= _config.GridHeight)
             wrappedY = 0;
 
         Trail.UpdateHeadPosition(new Position(wrappedX, wrappedY));
@@ -160,8 +166,8 @@ public class SnakeGame
         do
         {
             randomPosition = new Position(
-                Random.Shared.Next(GridWidth),
-                Random.Shared.Next(GridHeight)
+                Random.Shared.Next(_config.GridWidth),
+                Random.Shared.Next(_config.GridHeight)
             );
         } while (IsPositionOccupiedBySnake(randomPosition));
 
@@ -178,7 +184,7 @@ public class SnakeGame
         if (CurrentPowerUp != null)
             return;
 
-        if (ticksSinceLastPowerUpSpawn < TicksBeforeNextPowerUpCanSpawn)
+        if (ticksSinceLastPowerUpSpawn < _config.TicksBeforeNextPowerUpCanSpawn)
             return;
 
         if (Random.Shared.NextDouble() > CurrentPowerUpSpawnChance)
@@ -194,8 +200,8 @@ public class SnakeGame
         do
         {
             randomPosition = new Position(
-                Random.Shared.Next(GridWidth),
-                Random.Shared.Next(GridHeight)
+                Random.Shared.Next(_config.GridWidth),
+                Random.Shared.Next(_config.GridHeight)
             );
         } while (IsPositionOccupiedBySnakeOrFood(randomPosition));
 
@@ -232,38 +238,49 @@ public class SnakeGame
 
     private void ApplyPowerUpEffect(PowerUpType type)
     {
-        switch (type)
-        {
-            case PowerUpType.SpeedBoost:
-                GameSpeed = 1.5;
-                break;
-            case PowerUpType.ScoreMultiplier:
-                ScoreMultiplier = 2;
-                break;
-            case PowerUpType.SlowMotion:
-                GameSpeed = 0.6;
-                break;
-            case PowerUpType.LuckyClover:
-                CurrentPowerUpSpawnChance = BoostedPowerUpSpawnChance;
-                break;
-        }
+        var effect = _powerUpEffectFactory.CreateEffectFor(type);
+        effect.ApplyToGame(this);
     }
 
     private void RemovePowerUpEffect(PowerUpType type)
     {
-        switch (type)
-        {
-            case PowerUpType.SpeedBoost:
-            case PowerUpType.SlowMotion:
-                GameSpeed = 1.0;
-                break;
-            case PowerUpType.ScoreMultiplier:
-                ScoreMultiplier = 1;
-                break;
-            case PowerUpType.LuckyClover:
-                CurrentPowerUpSpawnChance = BasePowerUpSpawnChance;
-                break;
-        }
+        var effect = _powerUpEffectFactory.CreateEffectFor(type);
+        effect.RemoveFromGame(this);
+    }
+
+    public void IncreaseGameSpeedByMultiplier(double multiplier)
+    {
+        GameSpeed = multiplier;
+    }
+
+    public void DecreaseGameSpeedByMultiplier(double multiplier)
+    {
+        GameSpeed = multiplier;
+    }
+
+    public void RestoreNormalGameSpeed()
+    {
+        GameSpeed = 1.0;
+    }
+
+    public void DoubleScoreMultiplier()
+    {
+        ScoreMultiplier = 2;
+    }
+
+    public void RestoreBaseScoreMultiplier()
+    {
+        ScoreMultiplier = 1;
+    }
+
+    public void BoostPowerUpSpawnChance()
+    {
+        CurrentPowerUpSpawnChance = _config.BoostedPowerUpSpawnChance;
+    }
+
+    public void RestoreBasePowerUpSpawnChance()
+    {
+        CurrentPowerUpSpawnChance = _config.BasePowerUpSpawnChance;
     }
 
     private void UpdateActivePowerUpTimers(double deltaTime)
@@ -284,7 +301,7 @@ public class SnakeGame
     {
         foreach (var powerUp in activePowerUps)
         {
-            powerUp.ExtendTimeByFoodConsumption(PowerUpExtensionPerFoodInSeconds);
+            powerUp.ExtendTimeByFoodConsumption(_config.PowerUpExtensionPerFoodInSeconds);
         }
     }
 
@@ -301,12 +318,12 @@ public class SnakeGame
         }
     }
 
-    private bool IsInvincible()
+    public bool IsInvincible()
     {
         return activePowerUps.Any(p => p.Type == PowerUpType.Invincibility);
     }
 
-    private bool IsGhostModeActive()
+    public bool IsGhostModeActive()
     {
         return activePowerUps.Any(p => p.Type == PowerUpType.GhostMode);
     }
