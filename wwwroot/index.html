@@ -49,32 +49,136 @@
 </head>
 <body>
     <div id="mainMenu" class="screen active">
-        <h1>Snake Game</h1>
+        <h1>Shake Game 🥤</h1>
         <button id="startButton">Start</button>
     </div>
 
     <div id="gameScreen" class="screen">
-        <h1>Coming Soon</h1>
-        <button id="exitButton">Exit</button>
+        <div style="margin-bottom: 20px;">
+            <div style="font-size: 1.5rem; margin-bottom: 10px;">Score: <span id="score">0</span></div>
+            <canvas id="gameCanvas" width="600" height="600" style="border: 3px solid #4CAF50; background-color: #2a2a2a;"></canvas>
+        </div>
+        <div id="gameOverMessage" style="display: none; font-size: 2rem; color: #ff6b6b; margin-bottom: 10px;">Spilled Shake! 🥤</div>
+        <button id="exitButton">Exit to Menu</button>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         const mainMenu = document.getElementById('mainMenu');
         const gameScreen = document.getElementById('gameScreen');
         const startButton = document.getElementById('startButton');
         const exitButton = document.getElementById('exitButton');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const gameOverMessage = document.getElementById('gameOverMessage');
 
-        startButton.addEventListener('click', showGameScreen);
+        const cellSize = 20;
+        let connection;
+
+        startButton.addEventListener('click', showGameScreenAndStartGame);
         exitButton.addEventListener('click', showMainMenu);
 
-        function showGameScreen() {
+        function showGameScreenAndStartGame() {
             mainMenu.classList.remove('active');
             gameScreen.classList.add('active');
+            gameOverMessage.style.display = 'none';
+            connectToGameServerAndStart();
         }
 
         function showMainMenu() {
+            disconnectFromGameServer();
             gameScreen.classList.remove('active');
             mainMenu.classList.add('active');
+        }
+
+        function connectToGameServerAndStart() {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/gameHub")
+                .build();
+
+            connection.on("UpdateGameState", renderGameStateOnCanvas);
+
+            connection.start()
+                .then(() => connection.invoke("StartNewGame"))
+                .catch(err => console.error(err));
+
+            listenForPlayerKeyboardInput();
+        }
+
+        function disconnectFromGameServer() {
+            if (connection) {
+                connection.stop();
+            }
+        }
+
+        function listenForPlayerKeyboardInput() {
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function handleKeyPress(event) {
+            const directionMap = {
+                'ArrowUp': 'up',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right'
+            };
+
+            const direction = directionMap[event.key];
+            if (direction && connection) {
+                connection.invoke("ChangeDirection", direction);
+                event.preventDefault();
+            }
+        }
+
+        function renderGameStateOnCanvas(gameState) {
+            clearCanvas();
+            drawShakeTrail(gameState.trail, gameState.colors);
+            drawIngredient(gameState.ingredient);
+            updateScoreDisplay(gameState.score);
+            
+            if (gameState.isGameOver) {
+                showGameOverMessage();
+            }
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawShakeTrail(segments, colors) {
+            segments.forEach((segment, index) => {
+                const color = colors[Math.min(index, colors.length - 1)];
+                ctx.fillStyle = color;
+                ctx.fillRect(
+                    segment.x * cellSize,
+                    segment.y * cellSize,
+                    cellSize - 2,
+                    cellSize - 2
+                );
+            });
+        }
+
+        function drawIngredient(ingredient) {
+            ctx.fillStyle = ingredient.color;
+            ctx.beginPath();
+            ctx.arc(
+                ingredient.position.x * cellSize + cellSize / 2,
+                ingredient.position.y * cellSize + cellSize / 2,
+                cellSize / 2 - 2,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
+
+        function updateScoreDisplay(score) {
+            scoreDisplay.textContent = score;
+        }
+
+        function showGameOverMessage() {
+            gameOverMessage.style.display = 'block';
         }
     </script>
 </body>
