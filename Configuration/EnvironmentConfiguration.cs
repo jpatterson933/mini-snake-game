@@ -36,8 +36,7 @@ public class EnvironmentConfiguration
 
     public string GetListeningAddress()
     {
-        var port = HasBaseUrl() ? new Uri(BaseUrl).Port.ToString() : Port;
-        return $"http://0.0.0.0:{port}";
+        return $"http://0.0.0.0:{Port}";
     }
 }
 
