@@ -11,8 +11,6 @@ AddServices(builder);
 
 var app = builder.Build();
 
-await EnsureDatabaseCreated(app);
-
 ConfigureStaticFileServing(app);
 ConfigureServerToListenOnRailwayPort(app);
 ConfigureHealthCheckEndpoint(app);
@@ -48,27 +46,6 @@ void AddDatabaseConfiguration(WebApplicationBuilder applicationBuilder)
 void AddServices(WebApplicationBuilder applicationBuilder)
 {
     applicationBuilder.Services.AddScoped<InputValidationService>();
-}
-
-async Task EnsureDatabaseCreated(WebApplication application)
-{
-    using var scope = application.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<SnakeGameDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    
-    try
-    {
-        logger.LogInformation("Applying database migrations...");
-        
-        await dbContext.Database.MigrateAsync();
-        
-        logger.LogInformation("Database migrations applied successfully.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "An error occurred while migrating the database.");
-        throw;
-    }
 }
 
 void ConfigureStaticFileServing(WebApplication application)
