@@ -4,10 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+        }
+
+        .screen {
+            display: none;
+            text-align: center;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <h1>Snake Game - Coming Soon</h1>
-    <p>Infrastructure ready. Game development in progress...</p>
+    <div id="mainMenu" class="screen active">
+        <h1>Snake Game</h1>
+        <button id="startButton">Start</button>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <h1>Coming Soon</h1>
+        <button id="exitButton">Exit</button>
+    </div>
+
+    <script>
+        const mainMenu = document.getElementById('mainMenu');
+        const gameScreen = document.getElementById('gameScreen');
+        const startButton = document.getElementById('startButton');
+        const exitButton = document.getElementById('exitButton');
+
+        startButton.addEventListener('click', () => {
+            mainMenu.classList.remove('active');
+            gameScreen.classList.add('active');
+        });
+
+        exitButton.addEventListener('click', () => {
+            gameScreen.classList.remove('active');
+            mainMenu.classList.add('active');
+        });
+    </script>
 </body>
 </html>
 
