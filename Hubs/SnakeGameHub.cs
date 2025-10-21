@@ -48,7 +48,20 @@ public class SnakeGameHub : Hub
 
     private void StartGameLoop(string connectionId)
     {
-        var timer = new Timer(async _ => await GameLoopTick(connectionId), null, 100, 100);
+        CreateAndStartGameTimer(connectionId);
+    }
+
+    private void CreateAndStartGameTimer(string connectionId)
+    {
+        if (!ActiveGames.TryGetValue(connectionId, out var game))
+            return;
+
+        StopExistingTimerIfRunning(connectionId);
+
+        var baseIntervalInMilliseconds = 100;
+        var adjustedInterval = (int)(baseIntervalInMilliseconds / game.GameSpeed);
+        
+        var timer = new Timer(async _ => await GameLoopTick(connectionId), null, adjustedInterval, adjustedInterval);
         GameTimers[connectionId] = timer;
     }
 
@@ -57,13 +70,33 @@ public class SnakeGameHub : Hub
         if (!ActiveGames.TryGetValue(connectionId, out var game))
             return;
 
-        var adjustedDeltaTime = 0.1 * game.GameSpeed;
-        game.UpdateGameState(adjustedDeltaTime);
+        var previousGameSpeed = game.GameSpeed;
+        game.UpdateGameState(0.1);
+        
+        if (HasGameSpeedChanged(game.GameSpeed, previousGameSpeed))
+        {
+            CreateAndStartGameTimer(connectionId);
+        }
+
         await SendCurrentGameStateToClient(connectionId, game);
 
         if (game.IsGameOver)
         {
             StopExistingGameIfRunning(connectionId);
+        }
+    }
+
+    private bool HasGameSpeedChanged(double currentSpeed, double previousSpeed)
+    {
+        return Math.Abs(currentSpeed - previousSpeed) > 0.01;
+    }
+
+    private void StopExistingTimerIfRunning(string connectionId)
+    {
+        if (GameTimers.TryGetValue(connectionId, out var existingTimer))
+        {
+            existingTimer.Dispose();
+            GameTimers.Remove(connectionId);
         }
     }
 

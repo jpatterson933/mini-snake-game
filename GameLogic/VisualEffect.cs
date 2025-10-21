@@ -24,10 +24,5 @@ public class VisualEffect
     {
         return new VisualEffect("ScreenShake", intensity, duration);
     }
-
-    public static VisualEffect CreateFlash(double intensity = 1.0, double duration = 0.2)
-    {
-        return new VisualEffect("Flash", intensity, duration);
-    }
 }
 
