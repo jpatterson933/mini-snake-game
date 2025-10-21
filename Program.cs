@@ -54,7 +54,21 @@ async Task EnsureDatabaseCreated(WebApplication application)
 {
     using var scope = application.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<SnakeGameDbContext>();
-    await dbContext.Database.MigrateAsync();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    
+    try
+    {
+        logger.LogInformation("Applying database migrations...");
+        
+        await dbContext.Database.MigrateAsync();
+        
+        logger.LogInformation("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        throw;
+    }
 }
 
 void ConfigureStaticFileServing(WebApplication application)
