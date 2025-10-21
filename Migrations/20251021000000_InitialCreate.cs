@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace SnakeGame.Migrations
 {
-    /// <inheritdoc />
+    [Migration("20251021000000_InitialCreate")]
     public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
