@@ -45,12 +45,132 @@
         button:hover {
             background-color: #45a049;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            padding: 30px;
+            border: 3px solid #4CAF50;
+            border-radius: 15px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 
+                0 0 20px rgba(76, 175, 80, 0.5),
+                0 0 40px rgba(76, 175, 80, 0.3),
+                inset 0 0 20px rgba(76, 175, 80, 0.1);
+            animation: modalGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes modalGlow {
+            0%, 100% {
+                box-shadow: 
+                    0 0 20px rgba(76, 175, 80, 0.5),
+                    0 0 40px rgba(76, 175, 80, 0.3),
+                    inset 0 0 20px rgba(76, 175, 80, 0.1);
+            }
+            50% {
+                box-shadow: 
+                    0 0 30px rgba(76, 175, 80, 0.7),
+                    0 0 60px rgba(76, 175, 80, 0.5),
+                    inset 0 0 30px rgba(76, 175, 80, 0.2);
+            }
+        }
+
+        .modal-content h2 {
+            color: #4CAF50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+            margin-top: 0;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            color: #4CAF50;
+            text-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+            margin-top: 20px;
+            font-size: 1.5rem;
+        }
+
+        .powerup-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+
+        .powerup-item:hover {
+            transform: translateX(5px);
+        }
+
+        .powerup-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .powerup-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .powerup-duration {
+            color: #FFD700;
+            font-size: 0.9rem;
+        }
+
+        .rule-item {
+            margin: 10px 0;
+            padding-left: 20px;
+            color: #ddd;
+        }
+
+        .close-btn {
+            background-color: #ff4444;
+            padding: 10px 30px;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .close-btn:hover {
+            background-color: #cc0000;
+        }
+
+        .secondary-btn {
+            background-color: #2196F3;
+            margin-top: 15px;
+        }
+
+        .secondary-btn:hover {
+            background-color: #0b7dda;
+        }
     </style>
 </head>
 <body>
     <div id="mainMenu" class="screen active">
         <h1>Snake Game</h1>
         <button id="startButton">Start</button>
+        <button id="instructionsButton" class="secondary-btn">Instructions</button>
     </div>
 
     <div id="gameScreen" class="screen">
@@ -66,12 +186,74 @@
         <button id="exitButton">Exit to Menu</button>
     </div>
 
+    <div id="instructionsModal" class="modal">
+        <div class="modal-content">
+            <h2>🐍 SNAKE GAME INSTRUCTIONS</h2>
+            
+            <h3>🎮 How to Play</h3>
+            <div class="rule-item">• Use <strong>Arrow Keys</strong> to control the snake</div>
+            <div class="rule-item">• Eat food to grow longer and earn <strong>10 points</strong></div>
+            <div class="rule-item">• Each food eaten extends active powerups by <strong>+1 second</strong></div>
+            <div class="rule-item">• Avoid hitting yourself (unless you have Invincibility)</div>
+            <div class="rule-item">• Avoid hitting walls (unless you have Invincibility or Ghost Mode)</div>
+            
+            <h3>⚡ Powerups</h3>
+            
+            <div class="powerup-item" style="border-color: #FFD700;">
+                <span class="powerup-icon">⚡</span>
+                <span class="powerup-name" style="color: #FFD700;">Speed Boost</span>
+                <span class="powerup-duration"> - 5 seconds - 50 pts</span>
+                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Increases game speed by 50%. Move faster, think faster!</div>
+            </div>
+            
+            <div class="powerup-item" style="border-color: #FF1493;">
+                <span class="powerup-icon">💎</span>
+                <span class="powerup-name" style="color: #FF1493;">Score Multiplier</span>
+                <span class="powerup-duration"> - 8 seconds - 75 pts</span>
+                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Doubles all points earned. Stack with food collection!</div>
+            </div>
+            
+            <div class="powerup-item" style="border-color: #00BFFF;">
+                <span class="powerup-icon">🛡️</span>
+                <span class="powerup-name" style="color: #00BFFF;">Invincibility</span>
+                <span class="powerup-duration"> - 6 seconds - 100 pts</span>
+                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Pass through yourself safely. Hit walls to wrap to the opposite side!</div>
+            </div>
+            
+            <div class="powerup-item" style="border-color: #00FFFF;">
+                <span class="powerup-icon">⏰</span>
+                <span class="powerup-name" style="color: #00FFFF;">Slow Motion</span>
+                <span class="powerup-duration"> - 7 seconds - 60 pts</span>
+                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Reduces game speed by 40%. More time to think and react!</div>
+            </div>
+            
+            <div class="powerup-item" style="border-color: #9370DB;">
+                <span class="powerup-icon">👻</span>
+                <span class="powerup-name" style="color: #9370DB;">Ghost Mode</span>
+                <span class="powerup-duration"> - 5 seconds - 80 pts</span>
+                <div style="margin-top: 5px; margin-left: 35px; color: #ccc;">Become ethereal! Pass through walls and yourself. Snake turns transparent.</div>
+            </div>
+            
+            <h3>💡 Pro Tips</h3>
+            <div class="rule-item">• Powerups spawn randomly after eating food (15% chance)</div>
+            <div class="rule-item">• Multiple powerups can be active simultaneously</div>
+            <div class="rule-item">• Keep eating food to extend powerup durations</div>
+            <div class="rule-item">• Particle effects indicate food/powerup collection</div>
+            <div class="rule-item">• Watch the progress bars to track active powerups</div>
+            
+            <button id="closeInstructionsButton" class="close-btn">Close</button>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         const mainMenu = document.getElementById('mainMenu');
         const gameScreen = document.getElementById('gameScreen');
         const startButton = document.getElementById('startButton');
         const exitButton = document.getElementById('exitButton');
+        const instructionsButton = document.getElementById('instructionsButton');
+        const instructionsModal = document.getElementById('instructionsModal');
+        const closeInstructionsButton = document.getElementById('closeInstructionsButton');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score');
@@ -87,6 +269,8 @@
 
         startButton.addEventListener('click', showGameScreenAndStartGame);
         exitButton.addEventListener('click', showMainMenu);
+        instructionsButton.addEventListener('click', showInstructions);
+        closeInstructionsButton.addEventListener('click', closeInstructions);
 
         function showGameScreenAndStartGame() {
             mainMenu.classList.remove('active');
@@ -99,6 +283,14 @@
             disconnectFromGameServer();
             gameScreen.classList.remove('active');
             mainMenu.classList.add('active');
+        }
+
+        function showInstructions() {
+            instructionsModal.classList.add('active');
+        }
+
+        function closeInstructions() {
+            instructionsModal.classList.remove('active');
         }
 
         function connectToGameServerAndStart() {
