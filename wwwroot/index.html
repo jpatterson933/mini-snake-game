@@ -177,6 +177,7 @@
         <h1>Snake Game</h1>
         <button id="startButton">Start</button>
         <button id="instructionsButton" class="secondary-btn">Instructions</button>
+        <button id="leaderboardButton" class="secondary-btn">Leaderboard</button>
     </div>
 
     <div id="gameScreen" class="screen">
@@ -241,6 +242,27 @@
         </div>
     </div>
 
+    <div id="highScoreModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>🏆 TOP 5 HIGH SCORE!</h2>
+            <p style="font-size: 1.5rem; color: #FFD700; margin: 20px 0;">Your Score: <span id="finalScore">0</span></p>
+            <p style="margin-bottom: 20px; color: #ddd;">Enter your name to save your score:</p>
+            <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="50" 
+                style="width: 100%; padding: 12px; font-size: 1rem; border: 2px solid #4CAF50; background: #1a1a1a; color: white; border-radius: 5px; margin-bottom: 10px;" />
+            <div id="errorMessage" style="color: #ff4444; margin-bottom: 10px; display: none;"></div>
+            <button id="saveHighScoreButton" style="width: 100%; margin-top: 10px;">Save High Score</button>
+            <button id="skipHighScoreButton" class="close-btn" style="margin-top: 10px;">Skip</button>
+        </div>
+    </div>
+
+    <div id="leaderboardModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>🏆 TOP 5 LEADERBOARD</h2>
+            <div id="leaderboardList" style="margin: 20px 0;"></div>
+            <button id="closeLeaderboardButton" class="close-btn">Close</button>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         const mainMenu = document.getElementById('mainMenu');
@@ -248,8 +270,18 @@
         const startButton = document.getElementById('startButton');
         const exitButton = document.getElementById('exitButton');
         const instructionsButton = document.getElementById('instructionsButton');
+        const leaderboardButton = document.getElementById('leaderboardButton');
         const instructionsModal = document.getElementById('instructionsModal');
         const closeInstructionsButton = document.getElementById('closeInstructionsButton');
+        const highScoreModal = document.getElementById('highScoreModal');
+        const saveHighScoreButton = document.getElementById('saveHighScoreButton');
+        const skipHighScoreButton = document.getElementById('skipHighScoreButton');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const errorMessage = document.getElementById('errorMessage');
+        const finalScore = document.getElementById('finalScore');
+        const leaderboardModal = document.getElementById('leaderboardModal');
+        const closeLeaderboardButton = document.getElementById('closeLeaderboardButton');
+        const leaderboardList = document.getElementById('leaderboardList');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score');
@@ -262,11 +294,16 @@
         let connection;
         let screenShakeOffsetX = 0;
         let screenShakeOffsetY = 0;
+        let currentGameScore = 0;
 
         startButton.addEventListener('click', showGameScreenAndStartGame);
         exitButton.addEventListener('click', showMainMenu);
         instructionsButton.addEventListener('click', showInstructions);
         closeInstructionsButton.addEventListener('click', closeInstructions);
+        leaderboardButton.addEventListener('click', showLeaderboard);
+        saveHighScoreButton.addEventListener('click', saveHighScore);
+        skipHighScoreButton.addEventListener('click', closeHighScoreModal);
+        closeLeaderboardButton.addEventListener('click', closeLeaderboard);
 
         function showGameScreenAndStartGame() {
             mainMenu.classList.remove('active');
@@ -287,6 +324,112 @@
 
         function closeInstructions() {
             instructionsModal.classList.remove('active');
+        }
+
+        async function showLeaderboard() {
+            try {
+                if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
+                    await connectToServerForLeaderboard();
+                }
+                
+                const topScores = await connection.invoke("GetTopFiveScores");
+                displayLeaderboard(topScores);
+                leaderboardModal.classList.add('active');
+            } catch (err) {
+                console.error('Error loading leaderboard:', err);
+                leaderboardList.innerHTML = '<p style="color: #ff4444; text-align: center;">Failed to load leaderboard. Please try again.</p>';
+                leaderboardModal.classList.add('active');
+            }
+        }
+
+        async function connectToServerForLeaderboard() {
+            if (!connection) {
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/gameHub")
+                    .build();
+            }
+            
+            if (connection.state === signalR.HubConnectionState.Disconnected) {
+                await connection.start();
+            }
+        }
+
+        function closeLeaderboard() {
+            leaderboardModal.classList.remove('active');
+        }
+
+        function displayLeaderboard(scores) {
+            if (!scores || scores.length === 0) {
+                leaderboardList.innerHTML = '<p style="color: #aaa; text-align: center;">No high scores yet. Be the first!</p>';
+                return;
+            }
+
+            leaderboardList.innerHTML = scores.map((score, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
+                const date = new Date(score.date).toLocaleDateString();
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin: 8px 0; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 4px solid #4CAF50;">
+                        <span style="font-size: 1.5rem;">${medal}</span>
+                        <span style="flex: 1; margin-left: 15px; font-weight: bold; color: #4CAF50;">${score.playerName}</span>
+                        <span style="color: #FFD700; font-size: 1.2rem; margin-right: 10px;">${score.score}</span>
+                        <span style="color: #888; font-size: 0.85rem;">${date}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function checkAndShowHighScoreModal(score) {
+            try {
+                currentGameScore = score;
+                const isTopFive = await connection.invoke("IsTopFiveScore", score);
+                
+                if (isTopFive) {
+                    finalScore.textContent = score;
+                    playerNameInput.value = '';
+                    errorMessage.style.display = 'none';
+                    highScoreModal.classList.add('active');
+                }
+            } catch (err) {
+                console.error('Error checking high score:', err);
+            }
+        }
+
+        async function saveHighScore() {
+            const playerName = playerNameInput.value.trim();
+            
+            if (!playerName) {
+                showError('Please enter your name');
+                return;
+            }
+
+            try {
+                saveHighScoreButton.disabled = true;
+                saveHighScoreButton.textContent = 'Saving...';
+                
+                const result = await connection.invoke("SaveHighScore", playerName, currentGameScore);
+                
+                if (result.success) {
+                    closeHighScoreModal();
+                    await showLeaderboard();
+                } else {
+                    showError(result.error);
+                }
+            } catch (err) {
+                showError('Failed to save high score. Please try again.');
+                console.error('Error saving high score:', err);
+            } finally {
+                saveHighScoreButton.disabled = false;
+                saveHighScoreButton.textContent = 'Save High Score';
+            }
+        }
+
+        function closeHighScoreModal() {
+            highScoreModal.classList.remove('active');
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
         }
 
         function connectToGameServerAndStart() {
@@ -351,6 +494,7 @@
             
             if (gameState.isGameOver) {
                 showGameOverMessage();
+                checkAndShowHighScoreModal(gameState.score);
             }
         }
 
