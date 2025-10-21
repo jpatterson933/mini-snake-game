@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using SnakeGame.GameLogic;
+using SnakeGame.Data;
+using SnakeGame.Services;
 
 namespace SnakeGame.Hubs;
 
@@ -8,10 +11,14 @@ public class SnakeGameHub : Hub
     private static readonly Dictionary<string, GameLogic.SnakeGame> ActiveGames = new();
     private static readonly Dictionary<string, Timer> GameTimers = new();
     private readonly IHubContext<SnakeGameHub> _hubContext;
+    private readonly SnakeGameDbContext _dbContext;
+    private readonly InputValidationService _validationService;
 
-    public SnakeGameHub(IHubContext<SnakeGameHub> hubContext)
+    public SnakeGameHub(IHubContext<SnakeGameHub> hubContext, SnakeGameDbContext dbContext, InputValidationService validationService)
     {
         _hubContext = hubContext;
+        _dbContext = dbContext;
+        _validationService = validationService;
     }
 
     public async Task StartNewGame()
@@ -44,6 +51,67 @@ public class SnakeGameHub : Hub
     {
         StopExistingGameIfRunning(Context.ConnectionId);
         return base.OnDisconnectedAsync(exception);
+    }
+
+    public async Task<bool> IsTopFiveScore(int score)
+    {
+        if (score <= 0)
+            return false;
+
+        var topFiveScores = await _dbContext.HighScores
+            .OrderByDescending(h => h.Score)
+            .Take(5)
+            .ToListAsync();
+
+        if (topFiveScores.Count < 5)
+            return true;
+
+        return score > topFiveScores.Min(h => h.Score);
+    }
+
+    public async Task<object> SaveHighScore(string playerName, int score)
+    {
+        var validationResult = _validationService.ValidatePlayerName(playerName);
+        
+        if (!validationResult.IsValid)
+        {
+            return new { success = false, error = validationResult.Message };
+        }
+
+        if (score <= 0)
+        {
+            return new { success = false, error = "Invalid score." };
+        }
+
+        var sanitizedName = validationResult.Message;
+
+        var highScore = new HighScore
+        {
+            PlayerName = sanitizedName,
+            Score = score,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.HighScores.Add(highScore);
+        await _dbContext.SaveChangesAsync();
+
+        return new { success = true, message = "High score saved successfully!" };
+    }
+
+    public async Task<List<object>> GetTopFiveScores()
+    {
+        var topScores = await _dbContext.HighScores
+            .OrderByDescending(h => h.Score)
+            .Take(5)
+            .Select(h => new
+            {
+                playerName = h.PlayerName,
+                score = h.Score,
+                date = h.CreatedAt
+            })
+            .ToListAsync();
+
+        return topScores.Cast<object>().ToList();
     }
 
     private void StartGameLoop(string connectionId)
