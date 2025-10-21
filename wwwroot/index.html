@@ -133,8 +133,8 @@
 
         function renderGameStateOnCanvas(gameState) {
             clearCanvas();
-            drawShakeTrail(gameState.trail, gameState.colors);
-            drawIngredient(gameState.ingredient);
+            drawSnakeTrail(gameState.trail, gameState.colors);
+            drawFood(gameState.food);
             updateScoreDisplay(gameState.score);
             
             if (gameState.isGameOver) {
@@ -147,7 +147,7 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        function drawShakeTrail(segments, colors) {
+        function drawSnakeTrail(segments, colors) {
             segments.forEach((segment, index) => {
                 const color = colors[Math.min(index, colors.length - 1)];
                 ctx.fillStyle = color;
@@ -160,12 +160,12 @@
             });
         }
 
-        function drawIngredient(ingredient) {
-            ctx.fillStyle = ingredient.color;
+        function drawFood(food) {
+            ctx.fillStyle = food.color;
             ctx.beginPath();
             ctx.arc(
-                ingredient.position.x * cellSize + cellSize / 2,
-                ingredient.position.y * cellSize + cellSize / 2,
+                food.position.x * cellSize + cellSize / 2,
+                food.position.y * cellSize + cellSize / 2,
                 cellSize / 2 - 2,
                 0,
                 Math.PI * 2

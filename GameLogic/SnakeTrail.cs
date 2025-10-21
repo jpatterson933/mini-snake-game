@@ -1,6 +1,6 @@
 namespace SnakeGame.GameLogic;
 
-public class ShakeTrail
+public class SnakeTrail
 {
     private readonly List<Position> segments = new();
     private readonly List<string> colors = new();
@@ -10,7 +10,7 @@ public class ShakeTrail
     public Position Head => segments[0];
     public Direction CurrentDirection { get; private set; }
 
-    public ShakeTrail(Position startingPosition)
+    public SnakeTrail(Position startingPosition)
     {
         segments.Add(startingPosition);
         colors.Add("#ffffff");
@@ -31,9 +31,9 @@ public class ShakeTrail
         segments.Insert(0, newHead);
     }
 
-    public void GrowByAddingIngredient(string ingredientColor)
+    public void GrowByAddingFood(string foodColor)
     {
-        colors.Add(ingredientColor);
+        colors.Add(foodColor);
     }
 
     public void RemoveTailSegment()

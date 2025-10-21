@@ -3,13 +3,13 @@ using SnakeGame.GameLogic;
 
 namespace SnakeGame.Hubs;
 
-public class ShakeGameHub : Hub
+public class SnakeGameHub : Hub
 {
-    private static readonly Dictionary<string, ShakeGame> ActiveGames = new();
+    private static readonly Dictionary<string, GameLogic.SnakeGame> ActiveGames = new();
     private static readonly Dictionary<string, Timer> GameTimers = new();
-    private readonly IHubContext<ShakeGameHub> _hubContext;
+    private readonly IHubContext<SnakeGameHub> _hubContext;
 
-    public ShakeGameHub(IHubContext<ShakeGameHub> hubContext)
+    public SnakeGameHub(IHubContext<SnakeGameHub> hubContext)
     {
         _hubContext = hubContext;
     }
@@ -20,7 +20,7 @@ public class ShakeGameHub : Hub
         
         StopExistingGameIfRunning(connectionId);
         
-        var newGame = new ShakeGame();
+        var newGame = new GameLogic.SnakeGame();
         ActiveGames[connectionId] = newGame;
         
         await SendCurrentGameStateToClient(connectionId, newGame);
@@ -35,7 +35,7 @@ public class ShakeGameHub : Hub
             return Task.CompletedTask;
 
         var parsedDirection = ParseDirectionFromString(direction);
-        game.ChangeShakeDirection(parsedDirection);
+        game.ChangeSnakeDirection(parsedDirection);
         
         return Task.CompletedTask;
     }
@@ -66,17 +66,17 @@ public class ShakeGameHub : Hub
         }
     }
 
-    private async Task SendCurrentGameStateToClient(string connectionId, ShakeGame game)
+    private async Task SendCurrentGameStateToClient(string connectionId, GameLogic.SnakeGame game)
     {
         await _hubContext.Clients.Client(connectionId).SendAsync("UpdateGameState", new
         {
             trail = game.Trail.Segments,
             colors = game.Trail.Colors,
-            ingredient = new
+            food = new
             {
-                position = game.CurrentIngredient.Location,
-                color = game.CurrentIngredient.Color,
-                name = game.CurrentIngredient.Name
+                position = game.CurrentFood.Location,
+                color = game.CurrentFood.Color,
+                name = game.CurrentFood.Name
             },
             score = game.Score,
             isGameOver = game.IsGameOver

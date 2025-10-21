@@ -9,7 +9,7 @@ var app = builder.Build();
 ConfigureStaticFileServing(app);
 ConfigureServerToListenOnRailwayPort(app);
 ConfigureHealthCheckEndpoint(app);
-ConfigureShakeGameHub(app);
+ConfigureSnakeGameHub(app);
 
 app.Run();
 
@@ -35,8 +35,8 @@ void ConfigureHealthCheckEndpoint(WebApplication application)
     application.MapGet("/health", () => "OK");
 }
 
-void ConfigureShakeGameHub(WebApplication application)
+void ConfigureSnakeGameHub(WebApplication application)
 {
-    application.MapHub<ShakeGameHub>("/gameHub");
+    application.MapHub<SnakeGameHub>("/gameHub");
 }
 

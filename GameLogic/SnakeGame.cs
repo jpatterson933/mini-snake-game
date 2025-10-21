@@ -1,25 +1,25 @@
 namespace SnakeGame.GameLogic;
 
-public class ShakeGame
+public class SnakeGame
 {
     private const int GridWidth = 30;
     private const int GridHeight = 30;
 
-    public ShakeTrail Trail { get; private set; }
-    public Ingredient CurrentIngredient { get; private set; }
+    public SnakeTrail Trail { get; private set; }
+    public Food CurrentFood { get; private set; }
     public int Score { get; private set; }
     public bool IsGameOver { get; private set; }
 
-    public ShakeGame()
+    public SnakeGame()
     {
         var centerOfGrid = new Position(GridWidth / 2, GridHeight / 2);
-        Trail = new ShakeTrail(centerOfGrid);
-        CurrentIngredient = CreateIngredientAtRandomLocation();
+        Trail = new SnakeTrail(centerOfGrid);
+        CurrentFood = CreateFoodAtRandomLocation();
         Score = 0;
         IsGameOver = false;
     }
 
-    public void ChangeShakeDirection(Direction newDirection)
+    public void ChangeSnakeDirection(Direction newDirection)
     {
         Trail.ChangeDirection(newDirection);
     }
@@ -31,23 +31,23 @@ public class ShakeGame
 
         Trail.MoveInCurrentDirection();
 
-        if (ShakeHasMovedOutOfBounds())
+        if (SnakeHasMovedOutOfBounds())
         {
-            EndGameWithSpilledShake();
+            EndGame();
             return;
         }
 
         if (Trail.HasCollidedWithItself())
         {
-            EndGameWithSpilledShake();
+            EndGame();
             return;
         }
 
-        if (ShakeHasConsumedIngredient())
+        if (SnakeHasConsumedFood())
         {
-            AddIngredientToShake();
+            AddFoodToSnake();
             IncreaseScore();
-            SpawnNewIngredient();
+            SpawnNewFood();
         }
         else
         {
@@ -55,20 +55,20 @@ public class ShakeGame
         }
     }
 
-    private bool ShakeHasMovedOutOfBounds()
+    private bool SnakeHasMovedOutOfBounds()
     {
         var head = Trail.Head;
         return head.X < 0 || head.X >= GridWidth || head.Y < 0 || head.Y >= GridHeight;
     }
 
-    private bool ShakeHasConsumedIngredient()
+    private bool SnakeHasConsumedFood()
     {
-        return CurrentIngredient.IsAtSameLocationAs(Trail.Head);
+        return CurrentFood.IsAtSameLocationAs(Trail.Head);
     }
 
-    private void AddIngredientToShake()
+    private void AddFoodToSnake()
     {
-        Trail.GrowByAddingIngredient(CurrentIngredient.Color);
+        Trail.GrowByAddingFood(CurrentFood.Color);
     }
 
     private void IncreaseScore()
@@ -76,17 +76,17 @@ public class ShakeGame
         Score += 10;
     }
 
-    private void SpawnNewIngredient()
+    private void SpawnNewFood()
     {
-        CurrentIngredient = CreateIngredientAtRandomLocation();
+        CurrentFood = CreateFoodAtRandomLocation();
     }
 
-    private void EndGameWithSpilledShake()
+    private void EndGame()
     {
         IsGameOver = true;
     }
 
-    private Ingredient CreateIngredientAtRandomLocation()
+    private Food CreateFoodAtRandomLocation()
     {
         Position randomPosition;
         do
@@ -95,12 +95,12 @@ public class ShakeGame
                 Random.Shared.Next(GridWidth),
                 Random.Shared.Next(GridHeight)
             );
-        } while (IsPositionOccupiedByShake(randomPosition));
+        } while (IsPositionOccupiedBySnake(randomPosition));
 
-        return new Ingredient(randomPosition);
+        return new Food(randomPosition);
     }
 
-    private bool IsPositionOccupiedByShake(Position position)
+    private bool IsPositionOccupiedBySnake(Position position)
     {
         return Trail.Segments.Any(segment => segment.IsAtSameLocationAs(position));
     }
