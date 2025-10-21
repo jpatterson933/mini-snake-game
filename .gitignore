@@ -92,3 +92,7 @@ artifacts/
 # claude auto-gen files
 .specstory/
 .cursorindexingignore
+
+node_modules/
+
+.md
