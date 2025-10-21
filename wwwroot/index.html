@@ -170,6 +170,67 @@
         .secondary-btn:hover {
             background-color: #0b7dda;
         }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .leaderboard-widget {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 250px;
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .leaderboard-title {
+            color: #4CAF50;
+            text-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+            font-size: 1.2rem;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-rank {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+
+        .leaderboard-player {
+            flex: 1;
+            color: #4CAF50;
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .leaderboard-score {
+            color: #FFD700;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .leaderboard-empty {
+            color: #aaa;
+            text-align: center;
+            font-size: 0.85rem;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -177,20 +238,28 @@
         <h1>Snake Game</h1>
         <button id="startButton">Start</button>
         <button id="instructionsButton" class="secondary-btn">Instructions</button>
-        <button id="leaderboardButton" class="secondary-btn">Leaderboard</button>
     </div>
 
     <div id="gameScreen" class="screen">
-        <div style="margin-bottom: 20px;">
-            <div style="font-size: 1.5rem; margin-bottom: 10px; display: flex; justify-content: space-between; width: 600px;">
-                <span>Score: <span id="score">0</span> <span id="multiplier" style="color: #FFD700;"></span></span>
-                <span id="speedIndicator" style="color: #00FFFF;"></span>
+        <div class="game-container">
+            <div>
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 1.5rem; margin-bottom: 10px; display: flex; justify-content: space-between; width: 600px;">
+                        <span>Score: <span id="score">0</span> <span id="multiplier" style="color: #FFD700;"></span></span>
+                        <span id="speedIndicator" style="color: #00FFFF;"></span>
+                    </div>
+                    <div id="activePowerUps" style="margin-bottom: 10px; min-height: 30px;"></div>
+                    <canvas id="gameCanvas" width="600" height="600" style="border: 3px solid #4CAF50; background-color: #2a2a2a;"></canvas>
+                </div>
+                <div id="gameOverMessage" style="display: none; font-size: 2rem; color: #ff6b6b; margin-bottom: 10px;">Game Over!</div>
+                <button id="exitButton">Exit to Menu</button>
             </div>
-            <div id="activePowerUps" style="margin-bottom: 10px; min-height: 30px;"></div>
-            <canvas id="gameCanvas" width="600" height="600" style="border: 3px solid #4CAF50; background-color: #2a2a2a;"></canvas>
+
+            <div class="leaderboard-widget">
+                <h3 class="leaderboard-title">🏆 TOP 5</h3>
+                <div id="leaderboardEntries"></div>
+            </div>
         </div>
-        <div id="gameOverMessage" style="display: none; font-size: 2rem; color: #ff6b6b; margin-bottom: 10px;">Game Over!</div>
-        <button id="exitButton">Exit to Menu</button>
     </div>
 
     <div id="instructionsModal" class="modal">
@@ -255,14 +324,6 @@
         </div>
     </div>
 
-    <div id="leaderboardModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <h2>🏆 TOP 5 LEADERBOARD</h2>
-            <div id="leaderboardList" style="margin: 20px 0;"></div>
-            <button id="closeLeaderboardButton" class="close-btn">Close</button>
-        </div>
-    </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         const mainMenu = document.getElementById('mainMenu');
@@ -270,7 +331,6 @@
         const startButton = document.getElementById('startButton');
         const exitButton = document.getElementById('exitButton');
         const instructionsButton = document.getElementById('instructionsButton');
-        const leaderboardButton = document.getElementById('leaderboardButton');
         const instructionsModal = document.getElementById('instructionsModal');
         const closeInstructionsButton = document.getElementById('closeInstructionsButton');
         const highScoreModal = document.getElementById('highScoreModal');
@@ -279,9 +339,7 @@
         const playerNameInput = document.getElementById('playerNameInput');
         const errorMessage = document.getElementById('errorMessage');
         const finalScore = document.getElementById('finalScore');
-        const leaderboardModal = document.getElementById('leaderboardModal');
-        const closeLeaderboardButton = document.getElementById('closeLeaderboardButton');
-        const leaderboardList = document.getElementById('leaderboardList');
+        const leaderboardEntries = document.getElementById('leaderboardEntries');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score');
@@ -290,7 +348,9 @@
         const activePowerUpsDisplay = document.getElementById('activePowerUps');
         const gameOverMessage = document.getElementById('gameOverMessage');
 
-        const cellSize = 20;
+        const CELL_SIZE = 20;
+        const RANK_MEDALS = ['🥇', '🥈', '🥉', '🏅', '🏅'];
+        
         let connection;
         let screenShakeOffsetX = 0;
         let screenShakeOffsetY = 0;
@@ -300,16 +360,15 @@
         exitButton.addEventListener('click', showMainMenu);
         instructionsButton.addEventListener('click', showInstructions);
         closeInstructionsButton.addEventListener('click', closeInstructions);
-        leaderboardButton.addEventListener('click', showLeaderboard);
         saveHighScoreButton.addEventListener('click', saveHighScore);
         skipHighScoreButton.addEventListener('click', closeHighScoreModal);
-        closeLeaderboardButton.addEventListener('click', closeLeaderboard);
 
         function showGameScreenAndStartGame() {
             mainMenu.classList.remove('active');
             gameScreen.classList.add('active');
             gameOverMessage.style.display = 'none';
             connectToGameServerAndStart();
+            loadAndDisplayLeaderboard();
         }
 
         function showMainMenu() {
@@ -326,23 +385,18 @@
             instructionsModal.classList.remove('active');
         }
 
-        async function showLeaderboard() {
+        async function loadAndDisplayLeaderboard() {
             try {
-                if (!connection || connection.state !== signalR.HubConnectionState.Connected) {
-                    await connectToServerForLeaderboard();
-                }
-                
-                const topScores = await connection.invoke("GetTopFiveScores");
-                displayLeaderboard(topScores);
-                leaderboardModal.classList.add('active');
-            } catch (err) {
-                console.error('Error loading leaderboard:', err);
-                leaderboardList.innerHTML = '<p style="color: #ff4444; text-align: center;">Failed to load leaderboard. Please try again.</p>';
-                leaderboardModal.classList.add('active');
+                await ensureConnectionIsEstablished();
+                const topFiveScores = await connection.invoke("GetTopFiveScores");
+                renderLeaderboardEntries(topFiveScores);
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                showLeaderboardError();
             }
         }
 
-        async function connectToServerForLeaderboard() {
+        async function ensureConnectionIsEstablished() {
             if (!connection) {
                 connection = new signalR.HubConnectionBuilder()
                     .withUrl("/gameHub")
@@ -354,28 +408,39 @@
             }
         }
 
-        function closeLeaderboard() {
-            leaderboardModal.classList.remove('active');
-        }
-
-        function displayLeaderboard(scores) {
+        function renderLeaderboardEntries(scores) {
             if (!scores || scores.length === 0) {
-                leaderboardList.innerHTML = '<p style="color: #aaa; text-align: center;">No high scores yet. Be the first!</p>';
+                showEmptyLeaderboard();
                 return;
             }
 
-            leaderboardList.innerHTML = scores.map((score, index) => {
-                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅';
-                const date = new Date(score.date).toLocaleDateString();
-                return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin: 8px 0; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 4px solid #4CAF50;">
-                        <span style="font-size: 1.5rem;">${medal}</span>
-                        <span style="flex: 1; margin-left: 15px; font-weight: bold; color: #4CAF50;">${score.playerName}</span>
-                        <span style="color: #FFD700; font-size: 1.2rem; margin-right: 10px;">${score.score}</span>
-                        <span style="color: #888; font-size: 0.85rem;">${date}</span>
-                    </div>
-                `;
-            }).join('');
+            const entriesHtml = scores.map((score, index) => 
+                createLeaderboardEntryHtml(score, index)
+            ).join('');
+            
+            leaderboardEntries.innerHTML = entriesHtml;
+        }
+
+        function createLeaderboardEntryHtml(score, index) {
+            const rankMedal = RANK_MEDALS[index];
+            const playerName = score.playerName;
+            const playerScore = score.score;
+
+            return `
+                <div class="leaderboard-entry">
+                    <span class="leaderboard-rank">${rankMedal}</span>
+                    <span class="leaderboard-player">${playerName}</span>
+                    <span class="leaderboard-score">${playerScore}</span>
+                </div>
+            `;
+        }
+
+        function showEmptyLeaderboard() {
+            leaderboardEntries.innerHTML = '<div class="leaderboard-empty">No scores yet!</div>';
+        }
+
+        function showLeaderboardError() {
+            leaderboardEntries.innerHTML = '<div class="leaderboard-empty" style="color: #ff4444;">Failed to load</div>';
         }
 
         async function checkAndShowHighScoreModal(score) {
@@ -398,38 +463,45 @@
             const playerName = playerNameInput.value.trim();
             
             if (!playerName) {
-                showError('Please enter your name');
+                displayValidationError('Please enter your name');
                 return;
             }
 
             try {
-                saveHighScoreButton.disabled = true;
-                saveHighScoreButton.textContent = 'Saving...';
-                
+                disableSaveButton();
                 const result = await connection.invoke("SaveHighScore", playerName, currentGameScore);
                 
                 if (result.success) {
                     closeHighScoreModal();
-                    await showLeaderboard();
+                    await loadAndDisplayLeaderboard();
                 } else {
-                    showError(result.error);
+                    displayValidationError(result.error);
                 }
-            } catch (err) {
-                showError('Failed to save high score. Please try again.');
-                console.error('Error saving high score:', err);
+            } catch (error) {
+                displayValidationError('Failed to save high score. Please try again.');
+                console.error('Error saving high score:', error);
             } finally {
-                saveHighScoreButton.disabled = false;
-                saveHighScoreButton.textContent = 'Save High Score';
+                enableSaveButton();
             }
+        }
+
+        function disableSaveButton() {
+            saveHighScoreButton.disabled = true;
+            saveHighScoreButton.textContent = 'Saving...';
+        }
+
+        function enableSaveButton() {
+            saveHighScoreButton.disabled = false;
+            saveHighScoreButton.textContent = 'Save High Score';
+        }
+
+        function displayValidationError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
         }
 
         function closeHighScoreModal() {
             highScoreModal.classList.remove('active');
-        }
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
         }
 
         function connectToGameServerAndStart() {
@@ -523,10 +595,10 @@
                 
                 ctx.fillStyle = color;
                 ctx.fillRect(
-                    segment.x * cellSize,
-                    segment.y * cellSize,
-                    cellSize - 2,
-                    cellSize - 2
+                    segment.x * CELL_SIZE,
+                    segment.y * CELL_SIZE,
+                    CELL_SIZE - 2,
+                    CELL_SIZE - 2
                 );
                 
                 ctx.globalAlpha = 1.0;
@@ -541,9 +613,9 @@
             ctx.fillStyle = food.color;
             ctx.beginPath();
             ctx.arc(
-                food.position.x * cellSize + cellSize / 2,
-                food.position.y * cellSize + cellSize / 2,
-                cellSize / 2 - 2,
+                food.position.x * CELL_SIZE + CELL_SIZE / 2,
+                food.position.y * CELL_SIZE + CELL_SIZE / 2,
+                CELL_SIZE / 2 - 2,
                 0,
                 Math.PI * 2
             );
@@ -552,8 +624,8 @@
         }
 
         function drawPowerUp(powerUp) {
-            const centerX = powerUp.position.x * cellSize + cellSize / 2;
-            const centerY = powerUp.position.y * cellSize + cellSize / 2;
+            const centerX = powerUp.position.x * CELL_SIZE + CELL_SIZE / 2;
+            const centerY = powerUp.position.y * CELL_SIZE + CELL_SIZE / 2;
             
             ctx.save();
             ctx.translate(centerX, centerY);
@@ -563,10 +635,10 @@
             
             ctx.fillStyle = powerUp.color;
             ctx.beginPath();
-            ctx.arc(0, 0, (cellSize / 2) * powerUp.pulse, 0, Math.PI * 2);
+            ctx.arc(0, 0, (CELL_SIZE / 2) * powerUp.pulse, 0, Math.PI * 2);
             ctx.fill();
             
-            ctx.font = `${cellSize}px Arial`;
+            ctx.font = `${CELL_SIZE}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(powerUp.icon, 0, 0);
@@ -583,9 +655,9 @@
                 ctx.fillStyle = particle.color;
                 ctx.beginPath();
                 ctx.arc(
-                    particle.x * cellSize,
-                    particle.y * cellSize,
-                    particle.size * cellSize,
+                    particle.x * CELL_SIZE,
+                    particle.y * CELL_SIZE,
+                    particle.size * CELL_SIZE,
                     0,
                     Math.PI * 2
                 );
